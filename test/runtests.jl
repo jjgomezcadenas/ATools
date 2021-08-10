@@ -88,16 +88,32 @@ end
     @test r == 4.0
 
     p1df, p = ATools.p1df(xs, qs, 25)
-    @test (mean(p1df.y_mean) > 99.0 && mean(p1df.y_mean) < 101.0)
-    @test (mean(p1df.x_mean) > 0.4 && mean(p1df.x_mean) < 0.6)
-    @test (mean(p1df.y_std) > 9.0 && mean(p1df.y_std) < 11.0)
+    @test (mean(p1df.y_mean) > 95.0 && mean(p1df.y_mean) < 105.0)
+    @test (mean(p1df.x_mean) > 0.3 && mean(p1df.x_mean) < 0.7)
+    @test (mean(p1df.y_std) > 8.0 && mean(p1df.y_std) < 12.0)
 
 end
 
 @testset "fits" begin
-    pol2(x, a, b, c) = a + b*x + c*x^2  
+    pol1(x,a,b) = a + b * x
+    pol2(x, a, b, c) = a + b*x + c*x^2 
+    pol3(x, a, b, c, d) = a + b*x + c*x^2 + d*x^3
+
     x=collect(LinRange(0., 10., 100))
+    y = pol1.(x,(10.0,), (3.0,),)
+    cf, ste = ATools.fit_pol1(x,y)
+    @test cf[1]≈10.0 && cf[2] ≈ 3.0
+    
     y = pol2.(x,(10.0,), (0.5,), (1.,),)
-    cf = ATools.fit_pol2(x,y)
+    cf, ste = ATools.fit_pol2(x,y)
     @test cf[1]≈10.0 && cf[2] ≈ 0.5 && cf[3] ≈ 1.0
+
+    y = pol3.(x,(10.0,), (1.0,), (0.7,),(0.5,))
+    cf, ste = ATools.fit_pol3(x,y)
+    @test cf[1]≈10.0 && cf[2] ≈ 1.0 && cf[3] ≈ 0.7 && cf[4] ≈ 0.5
+
+    hg1,pg1 = ATools.hist1d(qs, "gaussian μ=100, σ=10",  50, 50.0, 150.0, norm=true)
+    fg = ATools.fit_gauss(hg1)
+    @test fg.mu[1] > 99.5 && fg.mu[1] < 100.5
+    @test fg.std[1] > 9.5 && fg.std[1] < 10.5
 end

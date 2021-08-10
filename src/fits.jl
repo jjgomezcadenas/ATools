@@ -13,9 +13,7 @@ function lfit(ndf::DataFrame)
     return x -> c[1] + c[2]*x, predict(lr), c
 end
 
-function fit_pol2(x::Vector{T},y::Vector{T}) where T
-    @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2
-    p0 = [1.0, 1.0, 1.0]
+function polfit(pol, x::Vector{T},y::Vector{T}, p0::Vector{T}) where T
     fq = curve_fit(pol, x, y, p0)
     cfq = coef(fq)
     @info "coef(fq)" cfq
@@ -23,21 +21,28 @@ function fit_pol2(x::Vector{T},y::Vector{T}) where T
     @info "std(fq)" sfq
     @info "margin_of_error (90%)" margin_error(fq, 0.1)
     @info " confidence_interval (90%)" confidence_interval(fq, 0.1)
-    return cfq
+    return cfq, sfq
+end
+
+
+function fit_pol1(x::Vector{T},y::Vector{T}) where T
+    @. pol(x, p) = p[1] + p[2] * x 
+    p0 = [1.0, 1.0]
+    polfit(pol,x,y,p0)
+end
+
+
+function fit_pol2(x::Vector{T},y::Vector{T}) where T
+    @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2
+    p0 = [1.0, 1.0, 1.0]
+    polfit(pol,x,y,p0)
 end
 
 
 function fit_pol3(x::Vector{T},y::Vector{T}) where T
     @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2 + p[4] * x^3
     p0 = [1.0, 1.0, 1.0, 1.0]
-    fq = curve_fit(pol, x, y, p0)
-    cfq = coef(fq)
-    @info "coef(fq)" cfq
-    sfq = stderror(fq)
-    @info "std(fq)" sfq
-    @info "margin_of_error (90%)" margin_error(fq, 0.1)
-    @info " confidence_interval (90%)" confidence_interval(fq, 0.1)
-    return cfq
+    polfit(pol,x,y,p0)
 end
 
 """
