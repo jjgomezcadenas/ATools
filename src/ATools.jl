@@ -7,11 +7,13 @@ export select_event,select_by_index,select_by_column_value,
        select_by_column_value_interval,select_by_column_value_closed_interval,
        select_by_column_value_closed_left_interval,select_by_column_value_closed_right_interval,
        select_by_index,find_max_xy   #util 
-export hist1d, edges, centers, hist2d, p1df #histos  
+export hist1d, edges, centers, hist2d, p1df #histos 
+export lfit, fit_pol2,fit_pol3, FGauss, fit_gauss,fit_gauss_fm,fitg1,gfit_gauss2_cmean,
+fit_2gauss_cmean, fitg2,fit_profile
 include("math.jl")
 include("util.jl")
 include("histos.jl")
-#include("fits.jl")
+include("fits.jl")
 
 end
 

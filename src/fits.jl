@@ -111,8 +111,8 @@ function fit_gauss(h::Histogram)
 	@debug "mu, std" mu, sigma
 
 	# fit parameters lb, ub, po are lower, upper bounds and pars
-    lb = [0., mu - 10.0*sigma, sigma/10.0]
-    ub = [100.0*sum(w), mu + 10.0*sigma, 10.0*sigma]
+    lb = [0., mu - 100.0*sigma, sigma/100.0]
+    ub = [100*sum(w), mu + 100.0*sigma, 100.0*sigma]
     p0_bounds = [sum(w), mu, sigma]
 	CC, μ, σ  = cfit(gauss1, c, w, p0_bounds, lb, ub)
 	gx = gausg(μ, σ, CC)

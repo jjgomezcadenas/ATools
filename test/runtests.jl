@@ -92,6 +92,12 @@ end
     @test (mean(p1df.x_mean) > 0.4 && mean(p1df.x_mean) < 0.6)
     @test (mean(p1df.y_std) > 9.0 && mean(p1df.y_std) < 11.0)
 
-
 end
 
+@testset "fits" begin
+    pol2(x, a, b, c) = a + b*x + c*x^2  
+    x=collect(LinRange(0., 10., 100))
+    y = pol2.(x,(10.0,), (0.5,), (1.,),)
+    cf = ATools.fit_pol2(x,y)
+    @test cf[1]≈10.0 && cf[2] ≈ 0.5 && cf[3] ≈ 1.0
+end
