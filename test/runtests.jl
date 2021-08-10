@@ -88,9 +88,9 @@ end
     @test r == 4.0
 
     p1df, p = ATools.p1df(xs, qs, 25)
-    @test (mean(p1df.y_mean) > 99.5 && mean(p1df.y_mean) < 100.5)
-    @test (mean(p1df.x_mean) > 0.45 && mean(p1df.x_mean) < 0.55)
-    @test (mean(p1df.y_std) > 9.5 && mean(p1df.y_std) < 10.5)
+    @test (mean(p1df.y_mean) > 99.0 && mean(p1df.y_mean) < 101.0)
+    @test (mean(p1df.x_mean) > 0.4 && mean(p1df.x_mean) < 0.6)
+    @test (mean(p1df.y_std) > 9.0 && mean(p1df.y_std) < 11.0)
 
 
 end
