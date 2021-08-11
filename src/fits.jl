@@ -4,6 +4,7 @@ using LsqFit
 using Distributions
 using StatsBase
 using Printf
+using Plots 
 
 #linear fit wrapper
 
@@ -12,6 +13,35 @@ function lfit(ndf::DataFrame)
     c = coef(lr)
     return x -> c[1] + c[2]*x, predict(lr), c
 end
+
+struct RFit 
+	fitpar::Vector{Number}
+	fitstd::Vector{Number}
+	ci::Vector{Tuple{Number, Number}}
+	g::Function
+end
+
+function gpol1(ct)
+    function f1(z)
+        return ct[1] + ct[2] * z
+    end
+    return f1
+end
+
+function gpol2(ct)
+    function f2(z)
+        return ct[1] + ct[2] * z + ct[3] * z^2
+    end
+    return f2
+end
+
+function gpol3(ct)
+    function f3(z)
+        return ct[1] + ct[2] * z + ct[3] * z^2 + ct[4] * z^3
+    end
+    return f3
+end
+
 
 function polfit(pol, x::Vector{T},y::Vector{T}, p0::Vector{T}) where T
     fq = curve_fit(pol, x, y, p0)
@@ -25,24 +55,31 @@ function polfit(pol, x::Vector{T},y::Vector{T}, p0::Vector{T}) where T
 end
 
 
-function fit_pol1(x::Vector{T},y::Vector{T}) where T
+function fit_pol1(x::Vector{T},y::Vector{T}, ci=0.1) where T
     @. pol(x, p) = p[1] + p[2] * x 
     p0 = [1.0, 1.0]
-    polfit(pol,x,y,p0)
+    fq = curve_fit(pol, x, y, p0)
+    
+    RFit(coef(fq), stderror(fq), confidence_interval(fq, ci), 
+         gpol1(coef(fq)))
 end
 
 
-function fit_pol2(x::Vector{T},y::Vector{T}) where T
+function fit_pol2(x::Vector{T},y::Vector{T}, ci=0.1) where T
     @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2
     p0 = [1.0, 1.0, 1.0]
-    polfit(pol,x,y,p0)
+    fq = curve_fit(pol, x, y, p0)
+    RFit(coef(fq), stderror(fq), confidence_interval(fq, ci), 
+         gpol2(coef(fq)))
 end
 
 
-function fit_pol3(x::Vector{T},y::Vector{T}) where T
+function fit_pol3(x::Vector{T},y::Vector{T}, ci=0.1) where T
     @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2 + p[4] * x^3
     p0 = [1.0, 1.0, 1.0, 1.0]
-    polfit(pol,x,y,p0)
+    fq = curve_fit(pol, x, y, p0)
+    RFit(coef(fq), stderror(fq), confidence_interval(fq, ci), 
+         gpol3(coef(fq)))
 end
 
 """
@@ -288,49 +325,25 @@ fit_profile(df1::DataFrame, c1::String, c2::String,
 
 function fit_profile(x1::Vector{Float64}, x2::Vector{Float64},
 	                 tx1::String, ty1::String, fit="pol1", bins=25)
-    function gf1(ct, fit)
-        function f1(z)
-            return ct[1] + ct[2] * z
-        end
-	    function f2(z)
-	        return ct[1] + ct[2] * z + ct[3] * z^2
-	    end
-	    function f3(z)
-	        return ct[1] + ct[2] * z + ct[3] * z^2 + ct[4] * z^3
-	    end
 
-	    if fit == "pol1"
-	        return f1
-		elseif fit == "pol2"
-			return f2
-		elseif fit == "pol3"
-			return f3
-		else
-			printlnf("fit option not implemented")
-	    	return nothing
-		end
-	end
-
-    pdf1 = p1df(x1,x2, bins)
+    pdf1, _ = p1df(x1,x2, bins)
 
     if fit == "pol1"
-        lt1, pt1, ct1 = lfit(pdf1)
+        fr = fit_pol1(pdf1.x_mean, pdf1.y_mean)
     elseif fit == "pol2"
-        ct1 = fit_pol2(pdf1.x_mean, pdf1.y_mean)
+        fr = fit_pol2(pdf1.x_mean, pdf1.y_mean)
 	elseif fit == "pol3"
-		ct1 = fit_pol3(pdf1.x_mean, pdf1.y_mean)
+		fr = fit_pol3(pdf1.x_mean, pdf1.y_mean)
 	else
 		println("option not implemented")
 		return nothing
     end
 
-    ff1 = gf1(ct1, fit)
-
     p1 = plot(pdf1.x_mean,pdf1.y_mean, yerror=pdf1.y_std,
 	          shape = :circle, color = :black, legend=false)
-    p1 = plot!(p1, pdf1.x_mean, ff1.(pdf1.x_mean))
+    p1 = plot!(p1, pdf1.x_mean, fr.g.(pdf1.x_mean))
     xlabel!(tx1)
     ylabel!(ty1)
 
-   return ct1, ff1, p1
+   return fr, p1
 end
