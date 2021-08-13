@@ -339,7 +339,7 @@ function fit_profile(x1::Vector{Float64}, x2::Vector{Float64},
 		return nothing
     end
 
-    p1 = plot(pdf1.x_mean,pdf1.y_mean, yerror=pdf1.y_std,
+    p1 = scatter(pdf1.x_mean,pdf1.y_mean, yerror=pdf1.y_std,
 	          shape = :circle, color = :black, legend=false)
     p1 = plot!(p1, pdf1.x_mean, fr.g.(pdf1.x_mean))
     xlabel!(tx1)
