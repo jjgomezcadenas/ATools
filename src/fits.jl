@@ -214,7 +214,7 @@ function fitg1(x, xs, bins, xmin, xmax;
 	gx = fg.g[1]
 	X = centers(h)
 	lbl = @sprintf "σ =%4.1f " fg.std[1]
-    p = plot!(p, X, gx.(X), lw=2, label=lbl, legend=true)
+    p = plot!(p, X, gx.(X), lw=2, label=lbl, legend=true, fmt = :png)
 	xlabel!(xs)
 	return fg, p
 end
@@ -304,9 +304,9 @@ function fitg2(x, xs, bins, xmin, xmax;
 	lbl = @sprintf "σt =%4.1f mm, σ =%4.1f mm" fg.std[1] fg.std[2]
 	st  = @sprintf "σt =%4.1f mm " fg.std[1]
 	sf  = @sprintf "σ  =%4.1f mm" fg.std[2]
-    p = plot!(p,fg.X, fg.Y, label=lbl, lw=2)
-    p = plot!(p,fg.X, gx1.(fg.X), label=st, lw=1)
-    p = plot!(p,fg.X, gx2.(fg.X), label=sf, lw=1)
+    p = plot!(p,fg.X, fg.Y, label=lbl, lw=2, fmt = :png)
+    p = plot!(p,fg.X, gx1.(fg.X), label=st, lw=1, fmt = :png)
+    p = plot!(p,fg.X, gx2.(fg.X), label=sf, lw=1, fmt = :png)
     #xlabel!(xs)
     return fg, p
 end
@@ -339,9 +339,9 @@ function fit_profile(x1::Vector{Float64}, x2::Vector{Float64},
 		return nothing
     end
 
-    p1 = scatter(pdf1.x_mean,pdf1.y_mean, yerror=pdf1.y_std,
+    p1 = scatter(pdf1.x_mean,pdf1.y_mean, yerror=pdf1.y_std,fmt = :png,
 	          shape = :circle, color = :black, legend=false)
-    p1 = plot!(p1, pdf1.x_mean, fr.g.(pdf1.x_mean))
+    p1 = plot!(p1, pdf1.x_mean, fr.g.(pdf1.x_mean), fmt = :png)
     xlabel!(tx1)
     ylabel!(ty1)
 

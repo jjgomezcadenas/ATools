@@ -87,10 +87,11 @@ function hist1d(h::Histogram, xs::String; datap=true, markersize=3, fwl=false,
         xg = centers(h)
         p = scatter(xg,yg, yerr = sqrt.(yg), markersize=markersize, label=label, legend=legend)
         if fwl
-            p = plot!(p, xg,yg, yerr = sqrt.(yg), linewidth=1, label=label, legend=legend)
+            p = plot!(p, xg,yg, yerr = sqrt.(yg), fmt = :png, 
+                      linewidth=1, label=label, legend=legend)
         end
     else
-        p = plot(h, xlabel=xl, yl="frequency")
+        p = plot(h, xlabel=xl, fmt = :png, yl="frequency")
     end
     xlabel!(xs)
     ylabel!("frequency")
@@ -110,8 +111,8 @@ function hist1d(h1::Histogram, h2::Histogram, xs::String; markersize=2, norm=fal
     yg2 = h2.weights * 1.0
     xg2 = centers(h2)
 
-    p1 = scatter(xg1,yg1, yerr = sqrt.(yg1), markersize=markersize)
-    p  = scatter!(p1,xg2,yg2, yerr = sqrt.(yg2), markersize=markersize)
+    p1 = scatter(xg1,yg1, yerr = sqrt.(yg1), fmt = :png, markersize=markersize)
+    p  = scatter!(p1,xg2,yg2, yerr = sqrt.(yg2), fmt = :png, markersize=markersize)
     xlabel!(xs)
     ylabel!("frequency")
 
@@ -168,15 +169,10 @@ function p1df(x::Vector{T}, y::Vector{T}, nbins::Integer) where T
     ndf[!, "x_mean"] = bin_centers
     ndf[!, "x_std"] = bin_width ./2.0
 
-    p1 = plot(ndf.x_mean,ndf.y_mean, yerror=ndf.y_std, shape = :circle, color = :black, legend=false)
+    p1 = plot(ndf.x_mean,ndf.y_mean, yerror=ndf.y_std, fmt = :png,
+              shape = :circle, color = :black, legend=false)
     return ndf, p1
 end
 
-# p1df(x::Vector{Float64}, y::Vector{Float64},
-#      nbins::Integer)  = gp1df(x, y, nbins)
-# p1df(x::Vector{Float32}, y::Vector{Float32},
-#      nbins::Integer)  = gp1df(x, y, nbins)
-# p1df(x::Vector{Number}, y::Vector{Number},
-#      nbins::Integer)  = gp1df(x, y, nbins)
 
 
