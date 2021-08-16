@@ -201,6 +201,26 @@ function fit_gauss_fm(y::Vector{Float64}, xmin::Float64, xmax::Float64;
 end
 
 
+function plot_fit_gauss(x::Vector{Float64}, xs::String, ys::String, 
+    bins::Integer, xmin::Float64, xmax::Float64; 
+    xgmin::Float64, xgmax::Float64, gbins::Integer=50)
+
+    h,p = hist1d(x, xs, bins, xmin, xmax, norm=true)
+    fg  = fit_gauss(x, xgmin, xgmax, bins=gbins, norm=true) 
+    gx  = fg.g[1]
+    X   = centers(h)
+    Y   = h.weights
+    σY  = sqrt.(Y)
+    lbl = @sprintf " μ=%5.1f, σ =%5.1f " fg.mu[1] fg.std[1]
+    lbl =string("gaussian fit:\n", lbl)
+    p = scatter(X, Y, yerror=σY,fmt = :png,
+    shape = :circle, color = :black, label="data", legend=true)
+    p = plot!(p, X, gx.(X), lw=2, label=lbl, legend=true, fmt = :png)
+    xlabel!(xs)
+    xlabel!(ys)
+    return fg, p
+end
+
 """
 	fitg1(x, xs, xmin, xmax, xgmin, xgmax; bins=100)
 

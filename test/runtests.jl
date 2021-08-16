@@ -36,6 +36,11 @@ xs=rand(Float64, length(qs))
     m,s = ATools.mean_std(x, 5, 10)
     @test m ≈ mean(y)
     @test s ≈ std(y)
+
+    fxy = ATools.gline2p(0, 10., 1., 2.)
+    @test fxy(0) == 10.0
+    @test fxy(1) == 2.0
+    @test fxy(0.5) == 6.0
 end
 
 @testset "util" begin

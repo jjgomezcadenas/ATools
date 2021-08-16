@@ -51,6 +51,18 @@ function dxyz(x1::Vector{T}, x2::Vector{T}) where T <: Number
 end
 
 """
+	gline2p(x1,y1,x2, y2)
+	Line that goes through two points
+"""
+function gline2p(x1,y1,x2, y2) 
+    fxy(x) = y1 + (x - x1) * (y2 - y1)/(x2 -x1) 
+end
+
+function gline2p(x1::T,y1::T,x2::T, y2::T) where T 
+    fxy(x::T) = y1 + (x - x1) * (y2 - y1)/(x2 -x1) 
+end
+
+"""
 function wstd(x::Vector{T}, q::Vector{T}) where T
 
 Compute the std deviation in x weighted by q:
