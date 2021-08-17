@@ -2,6 +2,17 @@ using DataFrames
 #using LinearAlgebra
 #using GLM
 
+"""	
+	swap(x1::T, x2::T, cond::Bool) where T
+	swaps x and y if cond is false 
+"""
+function swap(x1::T, x2::T, cond::Bool) where T
+    if cond 
+        return x1, x2
+    else
+        return x2, x1
+    end
+end
 
 # Vector and data frames
 
@@ -152,4 +163,11 @@ function find_max_xy(df::DataFrame, xc::String, yc::String)
 	ymax, imax = findmax(df[!, yc])
 	x_ymax = df[imax, xc]
 	return ymax, x_ymax
+end
+
+
+function find_max_xy(x::Vector{T}, y::Vector{T}) where T
+	ymax, imax = findmax(x)
+	x_ymax = y[imax]
+	return ymax, imax, x_ymax
 end
