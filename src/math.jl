@@ -7,6 +7,7 @@ using StatsBase
 
 Given vector x, select values between xmin and xmax
 """
+## Can be a one liner
 function in_range(x::Vector{T}, xmin::T, xmax::T) where T <: Number
     xi = x[x.>xmin]
     xu = xi[xi.<xmax]
@@ -54,12 +55,12 @@ end
 	gline2p(x1,y1,x2, y2)
 	Line that goes through two points
 """
-function gline2p(x1,y1,x2, y2) 
-    fxy(x) = y1 + (x - x1) * (y2 - y1)/(x2 -x1) 
+function gline2p(x1,y1,x2, y2)
+    fxy(x) = y1 + (x - x1) * (y2 - y1)/(x2 -x1)
 end
 
-function gline2p(x1::T,y1::T,x2::T, y2::T) where T 
-    fxy(x::T) = y1 + (x - x1) * (y2 - y1)/(x2 -x1) 
+function gline2p(x1::T,y1::T,x2::T, y2::T) where T
+    fxy(x::T) = y1 + (x - x1) * (y2 - y1)/(x2 -x1)
 end
 
 """

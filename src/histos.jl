@@ -3,6 +3,7 @@ using Statistics
 using StatsBase
 # histograms
 
+#Necessary? Inf is defined.
 bigp=1.0e+10
 bign=-1.0e+10
 """
@@ -13,7 +14,7 @@ bign=-1.0e+10
 function digitize(x::Vector{T}, bins::LinRange{T}) where T
     return searchsortedlast.(Ref(bins), x)
 end
-# Notice that in this case the bins are expected to be sorted 
+# Notice that in this case the bins are expected to be sorted
 function digitize(x::Vector{T}, bins::Vector{T}) where T
     return searchsortedlast.(Ref(bins), x)
 end
@@ -27,6 +28,7 @@ end
 
 return a 1d histogram and its corresponding graphics (plots)
 """
+##Can normalize have ! added to simplify?
 function hist1d(x::Vector{T}, bins::Vector{S}, norm=false) where {T<:Number,S<:Number}
     h = fit(Histogram, x, bins)
     if norm
@@ -35,7 +37,7 @@ function hist1d(x::Vector{T}, bins::Vector{S}, norm=false) where {T<:Number,S<:N
     return h
 end
 
-
+## Could call previous function with defined bins
 function hist1d(x::Vector{T}, nbins::Integer, xmin::T=bign, xmax::T=bigp, norm=false) where T
     xx = in_range(x, xmin, xmax)
     dx = (xmax - xmin) / nbins
@@ -53,6 +55,7 @@ end
 
 edges of the histogram
 """
+## copy needed?
  function edges(h::Histogram)
      collect(h.edges[1])
  end
@@ -87,7 +90,7 @@ function hist1d(h::Histogram, xs::String; datap=true, markersize=3, fwl=false,
         xg = centers(h)
         p = scatter(xg,yg, yerr = sqrt.(yg), markersize=markersize, label=label, legend=legend)
         if fwl
-            p = plot!(p, xg,yg, yerr = sqrt.(yg), fmt = :png, 
+            p = plot!(p, xg,yg, yerr = sqrt.(yg), fmt = :png,
                       linewidth=1, label=label, legend=legend)
         end
     else
@@ -173,6 +176,3 @@ function p1df(x::Vector{T}, y::Vector{T}, nbins::Integer) where T
               shape = :circle, color = :black, legend=false)
     return ndf, p1
 end
-
-
-

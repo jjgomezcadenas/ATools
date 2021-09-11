@@ -2,12 +2,12 @@ using DataFrames
 #using LinearAlgebra
 #using GLM
 
-"""	
+"""
 	swap(x1::T, x2::T, cond::Bool) where T
-	swaps x and y if cond is false 
+	swaps x and y if cond is false
 """
 function swap(x1::T, x2::T, cond::Bool) where T
-    if cond 
+    if cond
         return x1, x2
     else
         return x2, x1
@@ -24,6 +24,7 @@ Take the event dataframe and the index of an event and returns a data frame
 which selects that particular event
 
 """
+## Investigate, seems to do some unexpected things
 function select_event(dbdf::DataFrame, index::Integer)
 	return select_by_index(dbdf, "event_id", index)[:,2:end]
 end
@@ -165,7 +166,7 @@ function find_max_xy(df::DataFrame, xc::String, yc::String)
 	return ymax, x_ymax
 end
 
-
+## Different functionality to above with same name?
 function find_max_xy(x::Vector{T}, y::Vector{T}) where T
 	ymax, imax = findmax(x)
 	x_ymax = y[imax]
