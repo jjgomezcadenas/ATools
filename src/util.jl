@@ -2,6 +2,32 @@ using DataFrames
 #using LinearAlgebra
 #using GLM
 
+## Use abstract type to select range conditions
+## Method inspired by https://www.juliabloggers.com/julia-dispatching-enum-versus-type/
+abstract type ValueBound end
+struct OpenBound   <: ValueBound end
+struct ClosedBound <: ValueBound end
+struct LeftClosed  <: ValueBound end
+struct RightClosed <: ValueBound end
+
+
+function mask_function(xmin::T, xmax::T, ::Type{OpenBound  }) where T <: Number
+	x -> (x .>  xmin) .& (x .<  xmax)
+end
+
+function mask_function(xmin::T, xmax::T, ::Type{ClosedBound}) where T <: Number
+	x -> (x .>= xmin) .& (x .<= xmax)
+end
+
+function mask_function(xmin::T, xmax::T, ::Type{LeftClosed }) where T <: Number
+	x -> (x .>= xmin) .& (x .<  xmax)
+end
+
+function mask_function(xmin::T, xmax::T, ::Type{RightClosed}) where T <: Number
+	x -> (x .>  xmin) .& (x .<= xmax)
+end
+
+
 """
 	swap(x1::T, x2::T, cond::Bool) where T
 	swaps x and y if cond is false
@@ -21,11 +47,10 @@ end
 
 Given vector x, select values between xmin and xmax
 """
-## Can be a one liner
-function in_range(x::Vector{T}, xmin::T, xmax::T) where T <: Number
-    xi = x[x.>xmin]
-    xu = xi[xi.<xmax]
-    return xu
+function in_range(x::Vector{T}, xmin::T, xmax::T,
+				  interval::Type{S}=OpenBound) where {T <: Number, S <: ValueBound}
+    return x[mask_function(xmin, xmax, interval)(x)]
+end
 end
 
 
