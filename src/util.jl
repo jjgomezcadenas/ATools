@@ -51,6 +51,17 @@ function in_range(x::Vector{T}, xmin::T, xmax::T,
 				  interval::Type{S}=OpenBound) where {T <: Number, S <: ValueBound}
     return x[mask_function(xmin, xmax, interval)(x)]
 end
+
+
+"""
+	select_values
+
+Generic function to get values in a DataFrame given a condition
+function.
+TODO: Is it possible to specify that cond must take Vector and return Bool?
+"""
+function select_values(dbdf::DataFrame, cond_func::Function)
+	return dbdf[cond_func(dbdf), :]
 end
 
 
