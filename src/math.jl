@@ -3,19 +3,6 @@ using StatsBase
 
 
 """
-	in_range(x, xmin, xmax)
-
-Given vector x, select values between xmin and xmax
-"""
-## Can be a one liner
-function in_range(x::Vector{T}, xmin::T, xmax::T) where T <: Number
-    xi = x[x.>xmin]
-    xu = xi[xi.<xmax]
-    return xu
-end
-
-
-"""
 	rxy(x::T,y::T) where T
 	r -> sqrt{x^2 + y^2}
 """

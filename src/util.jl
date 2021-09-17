@@ -16,6 +16,18 @@ end
 
 # Vector and data frames
 
+"""
+	in_range(x, xmin, xmax)
+
+Given vector x, select values between xmin and xmax
+"""
+## Can be a one liner
+function in_range(x::Vector{T}, xmin::T, xmax::T) where T <: Number
+    xi = x[x.>xmin]
+    xu = xi[xi.<xmax]
+    return xu
+end
+
 
 """
 	select_event(dbdf::DataFrame, index::Int64)
