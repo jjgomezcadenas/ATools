@@ -45,7 +45,10 @@ end
     xr = ATools.in_range(x, 5, 10) # interval is ( )
 
     @test all(y .== xr)
-    
+    @test all(ATools.in_range(x, 5, 10, ATools.ClosedBound) .== collect(5:10))
+    @test all(ATools.in_range(x, 5, 10, ATools.LeftClosed ) .== collect(5:9 ))
+    @test all(ATools.in_range(x, 5, 10, ATools.RightClosed) .== collect(6:10))
+
     @test ATools.select_by_index(df,
     "index", 1) == ATools.select_by_column_value(df, "index", 1)
 
