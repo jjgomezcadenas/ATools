@@ -72,10 +72,10 @@ Take the event dataframe and the index of an event and returns a data frame
 which selects that particular event
 
 """
-## Investigate, seems to do some unexpected things
-function select_event(dbdf::DataFrame, index::Integer)
-	return select_by_index(dbdf, "event_id", index)[:,2:end]
+function select_event(dbdf::DataFrame, event_id::Integer)
+	return select_by_column_value(dbdf, "event_id", event_id)
 end
+
 
 """
 	select_by_column_value(df::DataFrame, column::String, value)
@@ -83,8 +83,7 @@ end
 Select elements in the DF which have "value" in "column"
 """
 function select_by_column_value(df::DataFrame, column::String, value)
-	mask = df[!,column].==value
-	return df[mask,:]
+	return select_values(df, x -> x[!, column] .== value)
 end
 
 """
@@ -93,8 +92,7 @@ end
 Select elements in the DF which are less than "value" in "column"
 """
 function select_by_column_value_lt(df::DataFrame, column::String, value)
-	mask = df[!,column].<value
-	return df[mask,:]
+	return select_values(df, x -> x[!, column] .< value)
 end
 
 
@@ -104,8 +102,7 @@ end
 Select elements in the DF which are less or equal than "value" in "column"
 """
 function select_by_column_value_le(df::DataFrame, column::String, value)
-	mask = df[!,column].<=value
-	return df[mask,:]
+	return select_values(df, x -> x[!, column] .<= value)
 end
 
 
@@ -115,8 +112,7 @@ end
 Select elements in the DF which are larger than "value" in "column"
 """
 function select_by_column_value_gt(df::DataFrame, column::String, value)
-	mask = df[!,column].>value
-	return df[mask,:]
+	return select_values(df, x -> x[!, column] .> value)
 end
 
 
@@ -126,8 +122,7 @@ end
 Select elements in the DF which are larger or equal than "value" in "column"
 """
 function select_by_column_value_ge(df::DataFrame, column::String, value)
-	mask = df[!,column].>=value
-	return df[mask,:]
+	return select_values(df, x -> x[!, column] .>= value)
 end
 
 
@@ -137,8 +132,8 @@ end
 Select elements in the DF which are in interval (valuef, valuel)
 """
 function select_by_column_value_interval(df::DataFrame, column::String, valuef, valuel)
-	df1 = select_by_column_value_gt(df, column, valuef)
-    return select_by_column_value_lt(df1, column, valuel)
+	cond_func = d -> mask_function(valuef, valuel, OpenBound)(d[!, column])
+	return select_values(df, cond_func)
 end
 
 
@@ -148,8 +143,9 @@ end
 Select elements in the DF which are in interval [valuef, valuel]
 """
 function select_by_column_value_closed_interval(df::DataFrame, column::String, valuef, valuel)
-	df1 = select_by_column_value_ge(df, column, valuef)
-    return select_by_column_value_le(df1, column, valuel)
+	cond_func = d -> mask_function(valuef, valuel, ClosedBound)(d[!, column])
+	return select_values(df, cond_func)
+	#return df[mask_function(df[!, column], valuef, valuel, ClosedBound), :]
 end
 
 
@@ -159,8 +155,9 @@ end
 Select elements in the DF which are in interval [valuef, valuel)
 """
 function select_by_column_value_closed_left_interval(df::DataFrame, column::String, valuef, valuel)
-	df1 = select_by_column_value_ge(df, column, valuef)
-    return select_by_column_value_lt(df1, column, valuel)
+	cond_func = d -> mask_function(valuef, valuel, LeftClosed)(d[!, column])
+	return select_values(df, cond_func)
+	#return df[mask_function(df[!, column], valuef, valuel, LeftClosed), :]
 end
 
 
@@ -170,8 +167,9 @@ end
 Select elements in the DF which are in interval (valuef, valuel]
 """
 function select_by_column_value_closed_right_interval(df::DataFrame, column::String, valuef, valuel)
-	df1 = select_by_column_value_gt(df, column, valuef)
-    return select_by_column_value_le(df1, column, valuel)
+	cond_func = d -> mask_function(valuef, valuel, RightClosed)(d[!, column])
+	return select_values(df, cond_func)
+	#return df[mask_function(df[!, column], valuef, valuel, RightClosed), :]
 end
 
 
@@ -180,7 +178,7 @@ end
 	select_by_index(df::DataFrame, column::String, value::Integer)
 
 Select elements in the DF which have "value" (Integer) in "column"
-
+!Name is misleading, does not select by index.
 """
 function select_by_index(df::DataFrame, column::String, value::Integer)
 	return select_by_column_value(df, column, value)
