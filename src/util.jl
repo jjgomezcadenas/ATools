@@ -205,19 +205,10 @@ which the intensity is maximal.
 - `xc::String`: the X column.
 - `yc::String`: the Y column.
 """
-##!! The two functions here have the same name but
-##   one gives the index and x, y where y maximal
-##   and the other index and x, y where x maximal
-##   This behaviour seems unstable.
-function find_max_xy(df::DataFrame, xc::String, yc::String)
-	ymax, imax = findmax(df[!, yc])
-	x_ymax = df[imax, xc]
-	return ymax, x_ymax
-end
+find_max_xy(df::DataFrame, xc::String, yc::String) = find_max_xy(df[!, xc], df[!, yc])
 
-## Different functionality to above with same name?
-function find_max_xy(x::Vector{T}, y::Vector{T}) where T
-	ymax, imax = findmax(x)
-	x_ymax = y[imax]
-	return ymax, imax, x_ymax
+function find_max_xy(x::Vector{T}, y::Vector{S}) where {T, S}
+	ymax, imax = findmax(y)
+	x_ymax     = x[imax]
+	return imax, x_ymax, ymax
 end
