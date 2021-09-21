@@ -1,6 +1,4 @@
 using DataFrames
-#using LinearAlgebra
-#using GLM
 
 ## Use abstract type to select range conditions
 ## Method inspired by https://www.juliabloggers.com/julia-dispatching-enum-versus-type/
@@ -59,6 +57,12 @@ end
 
 Generic function to get values in a DataFrame given a condition
 function.
+
+** Arguments **
+dbdf     ::DataFrame
+cond_func::Function Should take a value and return Boolean (brodcasting in function)
+column   ::String The column to be used with cond_func
+TODO: Change access from String to Symbol
 TODO: Is it possible to specify that cond must take Vector and return Bool?
 """
 function select_values(dbdf::DataFrame, cond_func::Function, column::String)

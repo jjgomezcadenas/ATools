@@ -3,7 +3,6 @@ using Test
 using Distributions
 using Statistics
 using DataFrames
-#using StatsModels
 
 df = DataFrame("event_id" => [1,2,3,4,5],
                "index" => [10,20,30,40,50],
