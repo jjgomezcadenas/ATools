@@ -61,8 +61,9 @@ Generic function to get values in a DataFrame given a condition
 function.
 TODO: Is it possible to specify that cond must take Vector and return Bool?
 """
-function select_values(dbdf::DataFrame, cond_func::Function)
-	return dbdf[cond_func(dbdf), :]
+function select_values(dbdf::DataFrame, cond_func::Function, column::String)
+	mask = broadcast(cond_func, dbdf[!, column])
+	return dbdf[mask, :]
 end
 
 
@@ -84,7 +85,7 @@ end
 Select elements in the DF which have "value" in "column"
 """
 function select_by_column_value(df::DataFrame, column::String, value)
-	return select_values(df, x -> x[!, column] .== value)
+	return select_values(df, x -> x == value, column)
 end
 
 """
@@ -93,7 +94,7 @@ end
 Select elements in the DF which are less than "value" in "column"
 """
 function select_by_column_value_lt(df::DataFrame, column::String, value)
-	return select_values(df, x -> x[!, column] .< value)
+	return select_values(df, x -> x < value, column)
 end
 
 
@@ -103,7 +104,7 @@ end
 Select elements in the DF which are less or equal than "value" in "column"
 """
 function select_by_column_value_le(df::DataFrame, column::String, value)
-	return select_values(df, x -> x[!, column] .<= value)
+	return select_values(df, x -> x <= value, column)
 end
 
 
@@ -113,7 +114,7 @@ end
 Select elements in the DF which are larger than "value" in "column"
 """
 function select_by_column_value_gt(df::DataFrame, column::String, value)
-	return select_values(df, x -> x[!, column] .> value)
+	return select_values(df, x -> x > value, column)
 end
 
 
@@ -123,7 +124,7 @@ end
 Select elements in the DF which are larger or equal than "value" in "column"
 """
 function select_by_column_value_ge(df::DataFrame, column::String, value)
-	return select_values(df, x -> x[!, column] .>= value)
+	return select_values(df, x -> x >= value, column)
 end
 
 
@@ -133,8 +134,8 @@ end
 Select elements in the DF which are in interval (valuef, valuel)
 """
 function select_by_column_value_interval(df::DataFrame, column::String, valuef, valuel)
-	cond_func = d -> mask_function(valuef, valuel, OpenBound)(d[!, column])
-	return select_values(df, cond_func)
+	cond_func = range_bound(valuef, valuel, OpenBound)
+	return select_values(df, cond_func, column)
 end
 
 
@@ -144,9 +145,8 @@ end
 Select elements in the DF which are in interval [valuef, valuel]
 """
 function select_by_column_value_closed_interval(df::DataFrame, column::String, valuef, valuel)
-	cond_func = d -> mask_function(valuef, valuel, ClosedBound)(d[!, column])
-	return select_values(df, cond_func)
-	#return df[mask_function(df[!, column], valuef, valuel, ClosedBound), :]
+	cond_func = range_bound(valuef, valuel, ClosedBound)
+	return select_values(df, cond_func, column)
 end
 
 
@@ -156,9 +156,8 @@ end
 Select elements in the DF which are in interval [valuef, valuel)
 """
 function select_by_column_value_closed_left_interval(df::DataFrame, column::String, valuef, valuel)
-	cond_func = d -> mask_function(valuef, valuel, LeftClosed)(d[!, column])
-	return select_values(df, cond_func)
-	#return df[mask_function(df[!, column], valuef, valuel, LeftClosed), :]
+	cond_func = range_bound(valuef, valuel, LeftClosed)
+	return select_values(df, cond_func, column)
 end
 
 
@@ -168,9 +167,8 @@ end
 Select elements in the DF which are in interval (valuef, valuel]
 """
 function select_by_column_value_closed_right_interval(df::DataFrame, column::String, valuef, valuel)
-	cond_func = d -> mask_function(valuef, valuel, RightClosed)(d[!, column])
-	return select_values(df, cond_func)
-	#return df[mask_function(df[!, column], valuef, valuel, RightClosed), :]
+	cond_func = range_bound(valuef, valuel, RightClosed)
+	return select_values(df, cond_func, column)
 end
 
 
