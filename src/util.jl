@@ -11,20 +11,20 @@ struct LeftClosed  <: ValueBound end
 struct RightClosed <: ValueBound end
 
 
-function mask_function(xmin::T, xmax::T, ::Type{OpenBound  }) where T <: Number
-	x -> (x .>  xmin) .& (x .<  xmax)
+function range_bound(xmin::T, xmax::T, ::Type{OpenBound  }) where T <: Number
+	x -> (x >  xmin) & (x <  xmax)
 end
 
-function mask_function(xmin::T, xmax::T, ::Type{ClosedBound}) where T <: Number
-	x -> (x .>= xmin) .& (x .<= xmax)
+function range_bound(xmin::T, xmax::T, ::Type{ClosedBound}) where T <: Number
+	x -> (x >= xmin) & (x <= xmax)
 end
 
-function mask_function(xmin::T, xmax::T, ::Type{LeftClosed }) where T <: Number
-	x -> (x .>= xmin) .& (x .<  xmax)
+function range_bound(xmin::T, xmax::T, ::Type{LeftClosed }) where T <: Number
+	x -> (x >= xmin) & (x <  xmax)
 end
 
-function mask_function(xmin::T, xmax::T, ::Type{RightClosed}) where T <: Number
-	x -> (x .>  xmin) .& (x .<= xmax)
+function range_bound(xmin::T, xmax::T, ::Type{RightClosed}) where T <: Number
+	x -> (x >  xmin) .& (x <= xmax)
 end
 
 
@@ -49,7 +49,8 @@ Given vector x, select values between xmin and xmax
 """
 function in_range(x::Vector{T}, xmin::T, xmax::T,
 				  interval::Type{S}=OpenBound) where {T <: Number, S <: ValueBound}
-    return x[mask_function(xmin, xmax, interval)(x)]
+	mask = broadcast(range_bound(xmin, xmax, interval), x)
+    return x[mask]
 end
 
 
