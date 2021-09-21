@@ -49,6 +49,7 @@ end
     @test all(ATools.in_range(x, 5, 10, ATools.LeftClosed ) .== collect(5:9 ))
     @test all(ATools.in_range(x, 5, 10, ATools.RightClosed) .== collect(6:10))
 
+    @test nrow(ATools.select_values(df, x -> x < 5, "event_id")) == 4
     @test ATools.select_by_index(df,
     "index", 1) == ATools.select_by_column_value(df, "index", 1)
 
@@ -60,7 +61,7 @@ end
     @test ATools.select_by_column_value_gt(df, "data", 400.0).index[1] == 50
     @test ATools.select_by_column_value_interval(df, "data", 200.0, 400.0).index[1] ==30
 
-    @test ATools.find_max_xy(df, "event_id", "data") == (500.0, 5)
+    @test ATools.find_max_xy(df, "event_id", "data") == (5, 5, 500.0)
 end
 
 @testset "histos" begin
