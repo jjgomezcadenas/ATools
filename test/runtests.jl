@@ -3,10 +3,9 @@ using Test
 using Distributions
 using Statistics
 using DataFrames
-#using StatsModels
 
-df = DataFrame("event_id" => [1,2,3,4,5], 
-               "index" => [10,20,30,40,50], 
+df = DataFrame("event_id" => [1,2,3,4,5],
+               "index" => [10,20,30,40,50],
                "data" => [100.,200.,300.,400.,500.])
 
 qx = Normal(100.0, 10.0)
@@ -18,18 +17,13 @@ xs=rand(Float64, length(qs))
 @testset "math" begin
     x = collect(1:100)
     y = collect(6:9)
-    xr = ATools.in_range(x, 5, 10) # interval is [ )
-
-    @test all(y .== xr)
-    @test all(Float32.(y) .== Float32.(xr))
-    @test all(Float64.(y) .== Float64.(xr))
 
     @test ATools.rxy(1,1) ≈ sqrt(2.)
     @test ATools.phixy(1,1) ≈ π/4
 
     @test ATools.dxyz([1,1,1], [2,2,2]) ≈ sqrt(3.)
 
-    
+
     qs = ones(length(data))
     @test isapprox(ATools.wstd(data, qs), std(data), rtol=1e-4)
 
@@ -44,6 +38,17 @@ xs=rand(Float64, length(qs))
 end
 
 @testset "util" begin
+    x = collect(1:100)
+    y = collect(6:9)
+    ## Tests for in_range function
+    xr = ATools.in_range(x, 5, 10) # interval is ( )
+
+    @test all(y .== xr)
+    @test all(ATools.in_range(x, 5, 10, ATools.ClosedBound) .== collect(5:10))
+    @test all(ATools.in_range(x, 5, 10, ATools.LeftClosed ) .== collect(5:9 ))
+    @test all(ATools.in_range(x, 5, 10, ATools.RightClosed) .== collect(6:10))
+
+    @test nrow(ATools.select_values(df, x -> x < 5, "event_id")) == 4
     @test ATools.select_by_index(df,
     "index", 1) == ATools.select_by_column_value(df, "index", 1)
 
@@ -55,7 +60,7 @@ end
     @test ATools.select_by_column_value_gt(df, "data", 400.0).index[1] == 50
     @test ATools.select_by_column_value_interval(df, "data", 200.0, 400.0).index[1] ==30
 
-    @test ATools.find_max_xy(df, "event_id", "data") == (500.0, 5)
+    @test ATools.find_max_xy(df, "event_id", "data") == (5, 5, 500.0)
 end
 
 @testset "histos" begin
@@ -84,7 +89,7 @@ end
     @info "position of the maximum" ic
     @info "value of the maximum" hc[ic]
     @test hc[ic] > 95.0 && hc[ic] < 105.0
-    
+
     h2 = ATools.hist1d(qs, 25, 50.0, 150.0, true)
     h2n = ATools.hist1d(qs, 25, 50.0, 150.0, false)
     ic = argmax(h2.weights)
@@ -101,14 +106,14 @@ end
 
 @testset "fits" begin
     pol1(x,a,b) = a + b * x
-    pol2(x, a, b, c) = a + b*x + c*x^2 
+    pol2(x, a, b, c) = a + b*x + c*x^2
     pol3(x, a, b, c, d) = a + b*x + c*x^2 + d*x^3
 
     x=collect(LinRange(0., 10., 100))
     y = pol1.(x,(10.0,), (3.0,),)
     fr = ATools.fit_pol1(x,y)
-    @test fr.fitpar[1]≈10.0 && fr.fitpar[2] ≈ 3.0 
-    
+    @test fr.fitpar[1]≈10.0 && fr.fitpar[2] ≈ 3.0
+
     y = pol2.(x,(10.0,), (0.5,), (1.,),)
     fr = ATools.fit_pol2(x,y)
     @test fr.fitpar[1]≈10.0 && fr.fitpar[2] ≈ 0.5 && fr.fitpar[3] ≈ 1.0

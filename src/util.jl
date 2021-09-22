@@ -1,13 +1,37 @@
 using DataFrames
-#using LinearAlgebra
-#using GLM
 
-"""	
+## Use abstract type to select range conditions
+## Method inspired by https://www.juliabloggers.com/julia-dispatching-enum-versus-type/
+abstract type ValueBound end
+struct OpenBound   <: ValueBound end
+struct ClosedBound <: ValueBound end
+struct LeftClosed  <: ValueBound end
+struct RightClosed <: ValueBound end
+
+
+function range_bound(xmin::T, xmax::T, ::Type{OpenBound  }) where T <: Number
+	x -> (x >  xmin) & (x <  xmax)
+end
+
+function range_bound(xmin::T, xmax::T, ::Type{ClosedBound}) where T <: Number
+	x -> (x >= xmin) & (x <= xmax)
+end
+
+function range_bound(xmin::T, xmax::T, ::Type{LeftClosed }) where T <: Number
+	x -> (x >= xmin) & (x <  xmax)
+end
+
+function range_bound(xmin::T, xmax::T, ::Type{RightClosed}) where T <: Number
+	x -> (x >  xmin) .& (x <= xmax)
+end
+
+
+"""
 	swap(x1::T, x2::T, cond::Bool) where T
-	swaps x and y if cond is false 
+	swaps x and y if cond is false
 """
 function swap(x1::T, x2::T, cond::Bool) where T
-    if cond 
+    if cond
         return x1, x2
     else
         return x2, x1
@@ -15,6 +39,36 @@ function swap(x1::T, x2::T, cond::Bool) where T
 end
 
 # Vector and data frames
+
+"""
+	in_range(x, xmin, xmax)
+
+Given vector x, select values between xmin and xmax
+"""
+function in_range(x::Vector{T}, xmin::T, xmax::T,
+				  interval::Type{S}=OpenBound) where {T <: Number, S <: ValueBound}
+	mask = broadcast(range_bound(xmin, xmax, interval), x)
+    return x[mask]
+end
+
+
+"""
+	select_values
+
+Generic function to get values in a DataFrame given a condition
+function.
+
+** Arguments **
+dbdf     ::DataFrame
+cond_func::Function Should take a value and return Boolean (brodcasting in function)
+column   ::String The column to be used with cond_func
+TODO: Change access from String to Symbol
+TODO: Is it possible to specify that cond must take Vector and return Bool?
+"""
+function select_values(dbdf::DataFrame, cond_func::Function, column::String)
+	mask = broadcast(cond_func, dbdf[!, column])
+	return dbdf[mask, :]
+end
 
 
 """
@@ -24,9 +78,10 @@ Take the event dataframe and the index of an event and returns a data frame
 which selects that particular event
 
 """
-function select_event(dbdf::DataFrame, index::Integer)
-	return select_by_index(dbdf, "event_id", index)[:,2:end]
+function select_event(dbdf::DataFrame, event_id::Integer)
+	return select_by_column_value(dbdf, "event_id", event_id)
 end
+
 
 """
 	select_by_column_value(df::DataFrame, column::String, value)
@@ -34,8 +89,7 @@ end
 Select elements in the DF which have "value" in "column"
 """
 function select_by_column_value(df::DataFrame, column::String, value)
-	mask = df[!,column].==value
-	return df[mask,:]
+	return select_values(df, x -> x == value, column)
 end
 
 """
@@ -44,8 +98,7 @@ end
 Select elements in the DF which are less than "value" in "column"
 """
 function select_by_column_value_lt(df::DataFrame, column::String, value)
-	mask = df[!,column].<value
-	return df[mask,:]
+	return select_values(df, x -> x < value, column)
 end
 
 
@@ -55,8 +108,7 @@ end
 Select elements in the DF which are less or equal than "value" in "column"
 """
 function select_by_column_value_le(df::DataFrame, column::String, value)
-	mask = df[!,column].<=value
-	return df[mask,:]
+	return select_values(df, x -> x <= value, column)
 end
 
 
@@ -66,8 +118,7 @@ end
 Select elements in the DF which are larger than "value" in "column"
 """
 function select_by_column_value_gt(df::DataFrame, column::String, value)
-	mask = df[!,column].>value
-	return df[mask,:]
+	return select_values(df, x -> x > value, column)
 end
 
 
@@ -77,8 +128,7 @@ end
 Select elements in the DF which are larger or equal than "value" in "column"
 """
 function select_by_column_value_ge(df::DataFrame, column::String, value)
-	mask = df[!,column].>=value
-	return df[mask,:]
+	return select_values(df, x -> x >= value, column)
 end
 
 
@@ -88,8 +138,8 @@ end
 Select elements in the DF which are in interval (valuef, valuel)
 """
 function select_by_column_value_interval(df::DataFrame, column::String, valuef, valuel)
-	df1 = select_by_column_value_gt(df, column, valuef)
-    return select_by_column_value_lt(df1, column, valuel)
+	cond_func = range_bound(valuef, valuel, OpenBound)
+	return select_values(df, cond_func, column)
 end
 
 
@@ -99,8 +149,8 @@ end
 Select elements in the DF which are in interval [valuef, valuel]
 """
 function select_by_column_value_closed_interval(df::DataFrame, column::String, valuef, valuel)
-	df1 = select_by_column_value_ge(df, column, valuef)
-    return select_by_column_value_le(df1, column, valuel)
+	cond_func = range_bound(valuef, valuel, ClosedBound)
+	return select_values(df, cond_func, column)
 end
 
 
@@ -110,8 +160,8 @@ end
 Select elements in the DF which are in interval [valuef, valuel)
 """
 function select_by_column_value_closed_left_interval(df::DataFrame, column::String, valuef, valuel)
-	df1 = select_by_column_value_ge(df, column, valuef)
-    return select_by_column_value_lt(df1, column, valuel)
+	cond_func = range_bound(valuef, valuel, LeftClosed)
+	return select_values(df, cond_func, column)
 end
 
 
@@ -121,8 +171,8 @@ end
 Select elements in the DF which are in interval (valuef, valuel]
 """
 function select_by_column_value_closed_right_interval(df::DataFrame, column::String, valuef, valuel)
-	df1 = select_by_column_value_gt(df, column, valuef)
-    return select_by_column_value_le(df1, column, valuel)
+	cond_func = range_bound(valuef, valuel, RightClosed)
+	return select_values(df, cond_func, column)
 end
 
 
@@ -131,7 +181,7 @@ end
 	select_by_index(df::DataFrame, column::String, value::Integer)
 
 Select elements in the DF which have "value" (Integer) in "column"
-
+!Name is misleading, does not select by index.
 """
 function select_by_index(df::DataFrame, column::String, value::Integer)
 	return select_by_column_value(df, column, value)
@@ -159,15 +209,10 @@ which the intensity is maximal.
 - `xc::String`: the X column.
 - `yc::String`: the Y column.
 """
-function find_max_xy(df::DataFrame, xc::String, yc::String)
-	ymax, imax = findmax(df[!, yc])
-	x_ymax = df[imax, xc]
-	return ymax, x_ymax
-end
+find_max_xy(df::DataFrame, xc::String, yc::String) = find_max_xy(df[!, xc], df[!, yc])
 
-
-function find_max_xy(x::Vector{T}, y::Vector{T}) where T
-	ymax, imax = findmax(x)
-	x_ymax = y[imax]
-	return ymax, imax, x_ymax
+function find_max_xy(x::Vector{T}, y::Vector{S}) where {T, S}
+	ymax, imax = findmax(y)
+	x_ymax     = x[imax]
+	return imax, x_ymax, ymax
 end
