@@ -1,7 +1,6 @@
 using StatsBase
 using LinearAlgebra
 
-
 """
 	Ray
 
@@ -15,12 +14,13 @@ From these, a unit vector, u can be computed.
 
 """
 struct Ray
-    p::Vector{Real}
-    d::Vector{Real}
-    u::Vector{Real}
+    p::Vector{Float64}
+    d::Vector{Float64}
+    u::Vector{Float64}
 
     function Ray(p , d)
         new(p, d, unit_vector(d,p))
+    end
 end
 
 
@@ -52,9 +52,9 @@ end
     Represents a Cylinder 
 """
 struct Cylinder
-    r   :: Real 
-    zmin:: Real
-    zmax:: Real
+    r   :: Float64 
+    zmin:: Float64
+    zmax:: Float64
 end
 
 """Normal to the cylinder barrel in point p
@@ -63,23 +63,23 @@ Uses equation of cylynder: F(x,y,z) = x^2 + y^2 - r^2 = 0
 then n = Grad(F)_P /Norm(Grad(F))_P
 n = (2x, 2y, 0)/sqrt(4x^2 + 4y^2) = (x,y,0)/r (P)
 """
-normal_to_barrel(c::Cylinder, p:: Vector{Real}) = [p[1], p[2], 0.0] ./c.r
+normal_to_barrel(c::Cylinder, p:: Vector{Float64}) = [p[1], p[2], 0.0] ./c.r
 
 """
     cylinder_equation(c::Cylinder, p:: Vector{Real}) 
 
 equation of cylynder: F(x,y,z) = x^2 + y^2 - r^2 = 0
 """
-cylinder_equation(c::Cylinder, p:: Vector{Real}) = p[1]^2 + p[2]^2 - c.r^2
+cylinder_equation(c::Cylinder, p:: Vector{Float64}) = p[1]^2 + p[2]^2 - c.r^2
 
 
 length(c::Cylinder) = abs.(c.zmax - c.zmin)
     
-perimeter(c::Cylinder) = 2 * Float(π) * c.r
+perimeter(c::Cylinder) = 2 * π * c.r
 
-area_barrel(c::Cylinder) = 2 * Float(π) * c.r * length(c)
+area_barrel(c::Cylinder) = 2 * π * c.r * length(c)
     
-area_endcap(c::Cylinder) = Float(π) * c.r^2
+area_endcap(c::Cylinder) = π * c.r^2
     
 area(c::Cylinder) = area_barrel(c) + 2 * area_endcap(c)
 

@@ -5,6 +5,7 @@ include("math.jl")
 include("util.jl")
 include("histos.jl")
 include("fits.jl")
+include("raytracing.jl")
 
 export in_range,gline2p, rxy,phixy,fphi,dxyz,wstd,mean_std,fit, 
        fit_pol1, fit_pol2,fit_pol3, fit_gauss,fit_gauss_fm, 
