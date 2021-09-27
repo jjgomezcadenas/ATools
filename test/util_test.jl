@@ -1,3 +1,9 @@
+using DataFrames
+
+df = DataFrame("event_id" => [1,2,3,4,5],
+               "index" => [10,20,30,40,50],
+               "data" => [100.,200.,300.,400.,500.])
+
 @testset "util" begin
     x = collect(1:100)
     y = collect(6:9)
