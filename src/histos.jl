@@ -4,9 +4,6 @@ using StatsBase
 import Base.length
 # histograms
 
-#Necessary? Inf is defined.
-bigp=1.0e+10
-bign=-1.0e+10
 """
     digitize(x, bins)
 
@@ -22,14 +19,13 @@ end
 
 
 """
-    hist1d(x::Vector{T}, nbins::Integer, xmin::T=bign, xmax::T=bigp)
+    hist1d(x::Vector{T}, nbins::Integer, xmin::T=typemin(T), xmax::T=typemax(T))
     hist1d(x::Vector{T}, xs::String, nbins::Integer,
-                    xmin::T=bign, xmax::T=bigp; datap = true, fwl=true)
+                    xmin::T=typemin(T), xmax::T=typemax(T); datap = true, fwl=true)
     hist1d(h::Histogram, xs::String; datap = true, markersize=3, fwl=false)
 
 return a 1d histogram and its corresponding graphics (plots)
 """
-##Can normalize have ! added to simplify?
 function hist1d(x::Vector{T}, bins::Vector{S}, norm=false) where {T<:Number,S<:Number}
     h = fit(Histogram, x, bins)
     if norm
@@ -38,15 +34,11 @@ function hist1d(x::Vector{T}, bins::Vector{S}, norm=false) where {T<:Number,S<:N
     return h
 end
 
-## Could call previous function with defined bins
-function hist1d(x::Vector{T}, nbins::Integer, xmin::T=bign, xmax::T=bigp, norm=false) where T
-    xx = in_range(x, xmin, xmax)
-    dx = (xmax - xmin) / nbins
-    bins =[xmin + i * dx for i in 0:nbins]
-    h = fit(Histogram, xx, bins)
-    if norm
-        h = StatsBase.normalize(h, mode=:density)
-    end
+function hist1d(x::Vector{T}, nbins::Integer,
+                xmin::T=typemin(T), xmax::T=typemax(T), norm=false) where T
+    xx   = in_range(x, xmin, xmax)
+    bins = collect(LinRange(xmin, xmax, nbins + 1))
+    h    = hist1d(xx, bins, norm)
     return h
 end
 
@@ -56,10 +48,9 @@ end
 
 edges of the histogram
 """
-## copy needed?
- function edges(h::Histogram)
-     collect(h.edges[1])
- end
+function edges(h::Histogram)
+    collect(h.edges[1])
+end
 
 
 """
@@ -95,7 +86,7 @@ end
 
 
 function hist1d(x::Vector{T}, xs::String, nbins::Integer,
-                xmin::T=bign, xmax::T=bigp;
+                xmin::T=typemin(T), xmax::T=typemax(T);
                 norm=false, datap = true, markersize=3, fwl=false,
                 label="", legend=false) where T
 
@@ -103,6 +94,7 @@ function hist1d(x::Vector{T}, xs::String, nbins::Integer,
                          datap=datap, markersize=markersize, fwl=fwl,
                          label=label, legend=legend)
 end
+
 
 function hist1d(h::Histogram, xs::String; datap=true, markersize=3, fwl=false,
                 label="", legend=false)
@@ -152,8 +144,8 @@ return a 2d histogram and its corresponding graphics (plots)
 """
 function hist2d(x::Vector{T},y::Vector{T}, nbins::Integer,
                 xl::String, yl::String,
-                xmin::T=bign, xmax::T=bigp,
-                ymin::T=bign, ymax::T=bigp; title="") where T
+                xmin::T=typemin(T), xmax::T=typemax(T),
+                ymin::T=typemin(T), ymax::T=typemax(T); title="") where T
     function xy(i)
         return diff(h.edges[i])/2 .+ h.edges[i][1:end-1]
     end
