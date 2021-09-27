@@ -1,6 +1,7 @@
 using Plots
 using Statistics
 using StatsBase
+import Base.length
 # histograms
 
 #Necessary? Inf is defined.
