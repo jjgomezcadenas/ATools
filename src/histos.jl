@@ -65,12 +65,33 @@ edges of the histogram
 """
     centers(h::Histogram)
 
-centers of the histogram
+return the centres of the histogram bins.
 """
- function centers(h::Histogram)
-     edges = collect(h.edges[1])
-     return [0.5 *(edges[i] + edges[i+1]) for i in 1:length(edges)-1]
- end
+centers(h::Histogram) = centers(edges(h))
+
+
+"""
+    centers
+
+Calculate the bin centers from a vector of bin edges
+"""
+function centers(edges::Vector{T}) where T
+    edges[1:end-1] + .-(@view(edges[2:end]), @view(edges[1:end-1])) / 2
+end
+
+
+"""
+    hist_weights
+
+return histogram a set of data and return the bin weights.
+"""
+function hist_weights(edges::Vector{T}) where T
+  function get_weights(y::SubArray{S}) where S
+    histo = fit(Histogram, y, edges)
+    return histo.weights
+  end
+  return get_weights
+end
 
 
 function hist1d(x::Vector{T}, xs::String, nbins::Integer,
@@ -155,23 +176,53 @@ end
 
 
 """
-    p1df(x, y, nbins)
+    fmean_std
+
+returns the weighted mean and std of an array given a minimum
+bin weight for consideration.
+"""
+function fmean_std(x::Vector{T}, min_prop::Float64=0.1) where T
+  mask_func = x -> x .> min_prop * maximum(x)
+  function filt_mean(w::SubArray{S}) where S
+      return [mean_and_std(x[mask_func(w)],
+                           FrequencyWeights(w[mask_func(w)]),
+                           corrected=true)]
+  end
+  return filt_mean
+end
+
+
+"""
+    p1df(x, y, nbins; ybin_width, ymin, ymax, min_proportion)
 
 return a profile DataFrame. This is a DF in which the variable y is
-histogrammed as a function of the average of variable x in each bin
+histogrammed as a function of the average of variable x in each bin.
+The keyword arguments allow for a filtering in the y variable by
+range and min_proportion of the maximum in the bin.
+TODO: Protect against fine binning that results in zeros.
 """
-function p1df(x::Vector{T}, y::Vector{T}, nbins::Integer) where T
-    df = DataFrame(x =  x, y = y)                      # create the DF
-    bins = LinRange(minimum(x), maximum(x), nbins)     # bins in x
-    df[!, "bin"] = digitize(x, bins)
-    bin_centers =[0.5 * (bins[i] + bins[i+1]) for i in 1:length(bins) -1]
-    bin_width = [bins[i+1] - bins[i] for i in 1:length(bins) -1]
-    # mean and std of y in binned x
-    ymean = combine(groupby(df, :bin), :y => mean)
-    ystd  = combine(groupby(df, :bin), :y => std)
-    ndf   = DataFrame(y_mean = ymean[1:end-1, "y_mean"],y_std = ystd[1:end-1, "y_std"])
-    ndf[!, "x_mean"] = bin_centers
-    ndf[!, "x_std"] = bin_width ./2.0
+function p1df(x::Vector{T}, y::Vector{T}, nbins::Integer;
+              ybin_width::T=0.1, ymin::T=minimum(y), ymax::T=maximum(y),
+              min_proportion::T=0.0) where T
+    df           = DataFrame(:y => y)
+    x_upper      = maximum(x) + 10 * eps(typeof(x[1]))
+    bin_edges    = LinRange(minimum(x), x_upper, nbins + 1)
+    df[!, "bin"] = digitize(x, bin_edges)
+    bin_centers  = centers(collect(bin_edges))
+    bin_width    = .-(@view(bin_edges[2:end]), @view(bin_edges[1:end-1]))
+    ## Bin in y so filtering can be done on bin content
+    y_upper      = ymax + 10 * eps(typeof(ymax))
+    y_bins       = collect(ymin:ybin_width:y_upper)
+    y_centers    = centers(y_bins)
+    y_weights    = combine(groupby(df, :bin),
+                           :y => hist_weights(y_bins) => :yweights,
+                           ungroup = false)
+    bin_stats    = fmean_std(y_centers, min_proportion)
+    ndf = combine(y_weights,
+                  :yweights => bin_stats => [:y_mean, :y_std])
+    ndf = ndf[:, [:y_mean, :y_std]]
+    ndf[!, :x_mean] = bin_centers
+    ndf[!, :x_std]  = bin_width / 2
 
     p1 = plot(ndf.x_mean,ndf.y_mean, yerror=ndf.y_std, fmt = :png,
               shape = :circle, color = :black, legend=false)
