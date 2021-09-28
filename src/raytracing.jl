@@ -1,6 +1,6 @@
 using StatsBase
 using LinearAlgebra
-using Polynomials
+#using Polynomials
 
 """
 	Ray
