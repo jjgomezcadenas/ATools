@@ -15,4 +15,3 @@ include("util_test.jl")
 include("histos_test.jl")
 include("fits_test.jl")
 include("raytracing_test.jl")
-

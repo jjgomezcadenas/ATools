@@ -4,7 +4,7 @@ using LsqFit
 using Distributions
 using StatsBase
 using Printf
-using Plots 
+using Plots
 
 #linear fit wrapper
 
@@ -14,7 +14,7 @@ function lfit(ndf::DataFrame)
     return x -> c[1] + c[2]*x, predict(lr), c
 end
 
-struct RFit 
+struct RFit
 	fitpar::Vector{Number}
 	fitstd::Vector{Number}
 	ci::Vector{Tuple{Number, Number}}
@@ -56,11 +56,11 @@ end
 
 
 function fit_pol1(x::Vector{T},y::Vector{T}, ci=0.1) where T
-    @. pol(x, p) = p[1] + p[2] * x 
+    @. pol(x, p) = p[1] + p[2] * x
     p0 = [1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
-    
-    RFit(coef(fq), stderror(fq), confidence_interval(fq, ci), 
+
+    RFit(coef(fq), stderror(fq), confidence_interval(fq, ci),
          gpol1(coef(fq)))
 end
 
@@ -69,7 +69,7 @@ function fit_pol2(x::Vector{T},y::Vector{T}, ci=0.1) where T
     @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2
     p0 = [1.0, 1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
-    RFit(coef(fq), stderror(fq), confidence_interval(fq, ci), 
+    RFit(coef(fq), stderror(fq), confidence_interval(fq, ci),
          gpol2(coef(fq)))
 end
 
@@ -78,7 +78,7 @@ function fit_pol3(x::Vector{T},y::Vector{T}, ci=0.1) where T
     @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2 + p[4] * x^3
     p0 = [1.0, 1.0, 1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
-    RFit(coef(fq), stderror(fq), confidence_interval(fq, ci), 
+    RFit(coef(fq), stderror(fq), confidence_interval(fq, ci),
          gpol3(coef(fq)))
 end
 
@@ -201,12 +201,12 @@ function fit_gauss_fm(y::Vector{Float64}, xmin::Float64, xmax::Float64;
 end
 
 
-function plot_fit_gauss(x::Vector{Float64}, xs::String, ys::String, 
-    bins::Integer, xmin::Float64, xmax::Float64; 
+function plot_fit_gauss(x::Vector{Float64}, xs::String, ys::String,
+    bins::Integer, xmin::Float64, xmax::Float64;
     xgmin::Float64, xgmax::Float64, gbins::Integer=50)
 
     h,p = hist1d(x, xs, bins, xmin, xmax, norm=true)
-    fg  = fit_gauss(x, xgmin, xgmax, bins=gbins, norm=true) 
+    fg  = fit_gauss(x, xgmin, xgmax, bins=gbins, norm=true)
     gx  = fg.g[1]
     X   = centers(h)
     Y   = h.weights
@@ -339,14 +339,19 @@ Create and fit a profile with pol1 or poli2 functions.
 Return fit parameters, fit function and plot
 """
 fit_profile(df1::DataFrame, c1::String, c2::String,
-            tx1::String, ty1::String, fit="pol1", bins=25) =
-	fit_profile(df1[!,c1], df1[!,c2], tx1, ty1, fit, bins)
+            tx1::String, ty1::String, fit="pol1", bins=25;
+            ybin_width::Float64=0.1, ymin::Float64=352.4, ymax::Float64=392.4,
+            min_proportion::Float64=0.0) =
+	fit_profile(df1[!,c1], df1[!,c2], tx1, ty1, fit, bins,
+                ybin_width=ybin_width, ymin=ymin, ymax=ymax, min_proportion=min_proportion)
 
 
 function fit_profile(x1::Vector{Float64}, x2::Vector{Float64},
-	                 tx1::String, ty1::String, fit="pol1", bins=25)
+	                 tx1::String, ty1::String, fit="pol1", bins=25;
+                     ybin_width::Float64=0.1, ymin::Float64=minimum(x2), ymax::Float64=maximum(x2),
+                     min_proportion::Float64=0.0)
 
-    pdf1, _ = p1df(x1,x2, bins)
+    pdf1, _ = p1df(x1,x2, bins, ybin_width=ybin_width, ymin=ymin, ymax=ymax, min_proportion=min_proportion)
 
     if fit == "pol1"
         fr = fit_pol1(pdf1.x_mean, pdf1.y_mean)

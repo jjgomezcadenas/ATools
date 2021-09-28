@@ -32,9 +32,13 @@
     #println(r)
     @test r == 4.0
 
-    p1df, p = ATools.p1df(xs, qs, 25)
+    profile_nbins = 25
+    p1df, _ = ATools.p1df(xs, qs, profile_nbins)
     @test (mean(p1df.y_mean) > 95.0 && mean(p1df.y_mean) < 105.0)
     @test (mean(p1df.x_mean) > 0.3 && mean(p1df.x_mean) < 0.7)
     @test (mean(p1df.y_std) > 8.0 && mean(p1df.y_std) < 12.0)
+
+     p1df_filt, _ = ATools.p1df(xs, qs, profile_nbins, min_proportion=0.1)
+     @test nrow(p1df_filt) == profile_nbins
 
 end
