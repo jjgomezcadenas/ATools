@@ -1,7 +1,7 @@
 using Plots
 using Statistics
 using StatsBase
-import Base.length
+#import Base.length
 # histograms
 
 """
@@ -27,7 +27,7 @@ end
 return a 1d histogram and its corresponding graphics (plots)
 """
 function hist1d(x::Vector{T}, bins::Vector{S}, norm=false) where {T<:Number,S<:Number}
-    h = fit(Histogram, x, bins)
+    h = StatsBase.fit(Histogram, x, bins)
     if norm
         h = StatsBase.normalize(h, mode=:density)
     end
