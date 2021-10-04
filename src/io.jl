@@ -43,7 +43,7 @@ Reads all csv files found in dir and returns a single DataFrame.
 """
 function readdf(dir::String)
     files = glob("*.csv",dir)
-    dfs   = [CSV.File(file, DataFrame) for file in files]
+    dfs   = [CSV.read(file, DataFrame) for file in files]
     evtdf = vcat(dfs...)
 end
 
@@ -107,7 +107,7 @@ function read_abc(path::String)
 		cols .=> ByRow(Int)
 	end
 
-	transform!(primaries, int_conv([:event_id]), renamecols=false)
+	transform!(primaries , int_conv([:event_id ]), renamecols=false)
 	transform!(sensor_xyz, int_conv([:sensor_id]), renamecols=false)
 	transform!(total_charge,
 		int_conv([:event_id, :sensor_id, :charge]), renamecols=false)
@@ -125,6 +125,18 @@ function read_abc(path::String)
 					total_charge,
 					waveform)
 end
+
+
+#"""
+#    dataframe_to_h5()
+#
+#Ouput a DataFrame to a HDF5 file.
+#"""
+#function dataframe_to_h5(args)
+#    function define_dattype(df::DataFrame)
+#        dtype = HDF5.h5t_create(HDF5.H5T_COMPOUND, )
+#    end
+#end
 
 
 """
@@ -156,7 +168,7 @@ function write_lors_hdf5(filename, mlor)
 	h5open(filename, "w") do h5f
 		dtype  = set_datatype(MlemLor)
 		dspace = dataspace(mlor)
-		grp    = create_group(h5f, "true_info")
+		grp    = create_group(h5f, "true_info")## This doesnt seem like a stable name
 		dset   = create_dataset(grp, "lors", dtype, dspace)
 		write_dataset(dset, dtype, mlor)
 	end
