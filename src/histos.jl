@@ -9,11 +9,11 @@ import Base.length
 
     Return the indices of the bins to which each value in input array belongs.
 """
-function digitize(x::Vector{T}, bins::LinRange{T}) where T
+function digitize(x::Vector{<:Real}, bins::LinRange{<:Real})
     return searchsortedlast.(Ref(bins), x)
 end
 # Notice that in this case the bins are expected to be sorted
-function digitize(x::Vector{T}, bins::Vector{T}) where T
+function digitize(x::Vector{<:Real}, bins::Vector{<:Real})
     return searchsortedlast.(Ref(bins), x)
 end
 
@@ -26,7 +26,7 @@ end
 
 return a 1d histogram and its corresponding graphics (plots)
 """
-function hist1d(x::Vector{T}, bins::Vector{S}, norm=false) where {T<:Number,S<:Number}
+function hist1d(x::Vector{<:Real}, bins::Vector{<:Real}, norm=false)
     h = fit(Histogram, x, bins)
     if norm
         h = StatsBase.normalize(h, mode=:density)
@@ -66,7 +66,7 @@ centers(h::Histogram) = centers(edges(h))
 
 Calculate the bin centers from a vector of bin edges
 """
-function centers(edges::Vector{T}) where T
+function centers(edges::Vector{<:Real})
     edges[1:end-1] + .-(@view(edges[2:end]), @view(edges[1:end-1])) / 2
 end
 
@@ -76,8 +76,8 @@ end
 
 return histogram a set of data and return the bin weights.
 """
-function hist_weights(edges::Vector{T}) where T
-  function get_weights(y::SubArray{S}) where S
+function hist_weights(edges::Vector{<:Real})
+  function get_weights(y::SubArray{<:Real})
     histo = fit(Histogram, y, edges)
     return histo.weights
   end
@@ -173,9 +173,9 @@ end
 returns the weighted mean and std of an array given a minimum
 bin weight for consideration.
 """
-function fmean_std(x::Vector{T}, min_prop::Float64=0.1) where T
+function fmean_std(x::Vector{<:Real}, min_prop::Float64=0.1)
   mask_func = x -> x .> min_prop * maximum(x)
-  function filt_mean(w::SubArray{S}) where S
+  function filt_mean(w::SubArray{<:Real})
       return [mean_and_std(x[mask_func(w)],
                            FrequencyWeights(w[mask_func(w)]),
                            corrected=true)]
@@ -193,17 +193,17 @@ The keyword arguments allow for a filtering in the y variable by
 range and min_proportion of the maximum in the bin.
 TODO: Protect against fine binning that results in zeros.
 """
-function p1df(x::Vector{T}, y::Vector{T}, nbins::Integer;
-              ybin_width::T=0.1, ymin::T=minimum(y), ymax::T=maximum(y),
-              min_proportion::T=0.0) where T
+function p1df(x::Vector{<:Real}, y::Vector{<:Real}, nbins::Integer;
+              ybin_width::Real=0.1, ymin::Real=minimum(y), ymax::Real=maximum(y),
+              min_proportion::Real=0.0)
     df           = DataFrame(:y => y)
-    x_upper      = maximum(x) + 10 * eps(typeof(x[1]))
+    x_upper      = nextfloat(maximum(x))
     bin_edges    = LinRange(minimum(x), x_upper, nbins + 1)
     df[!, "bin"] = digitize(x, bin_edges)
     bin_centers  = centers(collect(bin_edges))
     bin_width    = .-(@view(bin_edges[2:end]), @view(bin_edges[1:end-1]))
     ## Bin in y so filtering can be done on bin content
-    y_upper      = ymax + 10 * eps(typeof(ymax))
+    y_upper      = nextfloat(ymax)
     y_bins       = collect(ymin:ybin_width:y_upper)
     y_centers    = centers(y_bins)
     y_weights    = combine(groupby(df, :bin),
