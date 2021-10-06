@@ -19,7 +19,7 @@ export select_event,select_by_index,select_by_column_value,
        select_by_column_value_closed_left_interval,select_by_column_value_closed_right_interval,
        select_by_index,find_max_xy   #util
 export hist1d, edges, centers, hist2d, p1df #histos
-export readdf
+export readdf, read_abc, read_dset
 #export lfit, fit_pol1, fit_pol2,fit_pol3, fit_gauss,fit_gauss_fm,
 #       fitg1, fitg2, fit_profile #fits
 
