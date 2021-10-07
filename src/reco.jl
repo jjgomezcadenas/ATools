@@ -29,13 +29,13 @@ end
 
 
 """
-	radial_correction(xb::Vector{Real}, yb::Vector{Real},zb::Vector{Real},
-	                            r::Vector{Real})
+	radial_correction(xb::Vector{<:Real}, yb::Vector{<:Real},zb::Vector{<:Real},
+	                            r::Vector{<:Real})
 Computes the x, y position of the interaction from a radius
 of interaction and the x, y position from the SiPM barycentre
 """
-function radial_correction(xb::Vector{Real}, yb::Vector{Real},
-    zb::Vector{Real}, r::Vector{Real})
+function radial_correction(xb::Vector{<:Real}, yb::Vector{<:Real},
+    zb::Vector{<:Real}, r::Vector{<:Real})
     ϕ = atan.(yb, xb)
     x = r .* cos.(ϕ)
     y = r .* sin.(ϕ)
