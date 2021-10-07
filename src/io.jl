@@ -23,11 +23,17 @@ end
 
 
 """
+    Define type for output so general dtype generator can be used easily.
+"""
+abstract type OutputDataset end
+
+
+"""
 	MlemLor
 
 Struct representing a LOR
 """
-struct MlemLor
+struct MlemLor <: OutputDataset
     dx::Float32
     x1::Float32
     y1::Float32
@@ -44,7 +50,7 @@ end
 Struct representing the parameters for each hemisphere of a selected event.
 @kwdef macro allows for keyword argument definitions, improving readability.
 """
-@kwdef struct EventParameters
+@kwdef struct EventParameters <: OutputDataset
     event_id ::Int64   = zero(Int64)
     phot1    ::Bool    = false
     phot2    ::Bool    = false
@@ -111,7 +117,7 @@ end
 Type to store information about the simulation and analysis done on the data.
 Will be extended when full electronics simulation ready!
 """
-@kwdef struct SimConfiguration
+@kwdef struct SimConfiguration <: OutputDataset
     SiPMPDE::Float32 =    0.3
     ElecSTD::Float32 =    0.05
     SiPMThr::Float32 =    2.0
@@ -220,16 +226,16 @@ end
 
 
 """
-    event_pars_datatype
+    generate_hdf5_datatype
 
-returns a datatype object for saving EventParameters type to hdf5
+returns a datatype object for saving any of the OutputDataset group type to hdf5
 """
-function event_pars_datatype()
-    epdtype = HDF5.h5t_create(HDF5.H5T_COMPOUND, sizeof(EventParameters))
-    epnames = fieldnames(EventParameters)
-    eptypes = fieldtypes(EventParameters)
+function generate_hdf5_datatype(data_type::Type{<:OutputDataset})
+    epdtype = HDF5.h5t_create(HDF5.H5T_COMPOUND, sizeof(data_type))
+    epnames = fieldnames(data_type)
+    eptypes = fieldtypes(data_type)
     for (i, (nm, typ)) in enumerate(zip(epnames, eptypes))
-        HDF5.h5t_insert(epdtype, nm, fieldoffset(EventParameters, i), datatype(typ))
+        HDF5.h5t_insert(epdtype, nm, fieldoffset(data_type, i), datatype(typ))
     end
     return HDF5.Datatype(epdtype)
 end
@@ -240,29 +246,8 @@ end
 	Write lors in a hdf5 format required by petalorust (mlem algo)
 """
 function write_lors_hdf5(filename, mlor)
-
-    function set_datatype(::Type{MlemLor})
-        dtype = HDF5.h5t_create(HDF5.H5T_COMPOUND, sizeof(MlemLor))
-        HDF5.h5t_insert(dtype, "dx", fieldoffset(MlemLor, 1),
-                        datatype(Float32))
-        HDF5.h5t_insert(dtype, "x1", fieldoffset(MlemLor, 2),
-                        datatype(Float32))
-        HDF5.h5t_insert(dtype, "y1", fieldoffset(MlemLor, 3),
-                        datatype(Float32))
-        HDF5.h5t_insert(dtype, "z1", fieldoffset(MlemLor, 4),
-                        datatype(Float32))
-        HDF5.h5t_insert(dtype, "x2", fieldoffset(MlemLor, 5),
-                        datatype(Float32))
-        HDF5.h5t_insert(dtype, "y2", fieldoffset(MlemLor, 6),
-                        datatype(Float32))
-        HDF5.h5t_insert(dtype, "z2", fieldoffset(MlemLor, 7),
-                        datatype(Float32))
-
-        HDF5.Datatype(dtype)
-    end
-
 	h5open(filename, "w") do h5f
-		dtype  = set_datatype(MlemLor)
+		dtype  = generate_hdf5_datatype(MlemLor)
 		dspace = dataspace(mlor)
 		grp    = create_group(h5f, "true_info")## This doesnt seem like a stable name
 		dset   = create_dataset(grp, "lors", dtype, dspace)
