@@ -182,6 +182,25 @@ end
 
 
 """
+    readh5_todf(path::String, folder::String, dset::String)
+"""
+function readh5_todf(path::String, folder::String, dset::String)
+    h5open(path, "r") do fid
+		readh5_todf(fid, folder, dset)
+	end
+end
+
+
+"""
+    readh5_todf(h5in::HDF5.File, folder::String, dset::String)
+"""
+function readh5_todf(h5in::HDF5.File, folder::String, dset::String)
+    dst = readh5_dset(h5in, folder, dset)
+    return dst |> DataFrame
+end
+
+
+"""
 	read_abc(path::String)
 
 read abracadabra hdf5 and return relevant data sets
@@ -190,11 +209,11 @@ function read_abc(path::String)
 	(primaries, sensor_xyz,
 	 total_charge, vertices,
 	 waveform, volume_names, process_names) = h5open(path, "r") do h5in
-		a = readh5_dset(h5in, "MC", "primaries"    ) |> DataFrame
-		b = readh5_dset(h5in, "MC", "sensor_xyz"   ) |> DataFrame
-		c = readh5_dset(h5in, "MC", "total_charge" ) |> DataFrame
-		d = readh5_dset(h5in, "MC", "vertices"     ) |> DataFrame
-		e = readh5_dset(h5in, "MC", "waveform"     ) |> DataFrame
+		a = readh5_todf(h5in, "MC", "primaries"    )
+		b = readh5_todf(h5in, "MC", "sensor_xyz"   )
+		c = readh5_todf(h5in, "MC", "total_charge" )
+		d = readh5_todf(h5in, "MC", "vertices"     )
+		e = readh5_todf(h5in, "MC", "waveform"     )
 		f = readh5_dset(h5in, "MC", "volume_names" )
 		g = readh5_dset(h5in, "MC", "process_names")
 		return a, b, c, d, e, f, g
