@@ -105,6 +105,28 @@ Struct representing the parameters for each hemisphere of a selected event.
 end
 
 
+"""
+    SimConfiguration
+
+Type to store information about the simulation and analysis done on the data.
+Will be extended when full electronics simulation ready!
+"""
+@kwdef struct SimConfiguration
+    SiPMPDE::Float32 =    0.3
+    ElecSTD::Float32 =    0.05
+    SiPMThr::Float32 =    2.0
+    SumQmin::Float32 =  100.0
+    SumQmax::Float32 = 5000.0
+    Ntof   ::Int64   =    7
+    NEvent ::Int64   =    0
+    Rmin   ::Float32 =  353.0
+    Rmax   ::Float32 =  393.0
+    CalLin ::Float32 =    0.0#DOI Calibration linear term, to be implemented
+    CalCon ::Float32 =    0.0#DOI Calibration constant term
+    CalBias::Float32 =    0.0#DOI Calibration bias.
+end
+
+
 ## Readers/Writers
 """
     readdf(dir)
@@ -200,7 +222,7 @@ end
 """
     event_pars_datatype
 
-returns a datatype opbject for saving EventParameters type to hdf5
+returns a datatype object for saving EventParameters type to hdf5
 """
 function event_pars_datatype()
     epdtype = HDF5.h5t_create(HDF5.H5T_COMPOUND, sizeof(EventParameters))
@@ -211,16 +233,6 @@ function event_pars_datatype()
     end
     return HDF5.Datatype(epdtype)
 end
-#"""
-#    dataframe_to_h5()
-#
-#Ouput a DataFrame to a HDF5 file.
-#"""
-#function dataframe_to_h5(args)
-#    function define_dattype(df::DataFrame)
-#        dtype = HDF5.h5t_create(HDF5.H5T_COMPOUND, )
-#    end
-#end
 
 
 """
