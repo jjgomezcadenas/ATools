@@ -21,5 +21,15 @@
     @test all(evt_range.(pdf.waveform.event_id))
 
     @test sum(pdf.total_charge.charge) == 8098
-    
+
+    outfile = "testdata/evtPar_example.h5"
+    norm, rmin, rmax, evtdf = read_evtpar([outfile])
+
+    @test norm == 5000
+    @test isapprox(rmin, 353.0)
+    @test isapprox(rmax, 372.0)
+    @test nrow(evtdf) == 665
+    exp_fields = fieldnames(ATools.EventParameters)
+    @test ncol(evtdf) == length(exp_fields)
+    @test all(in(exp_fields).(propertynames(evtdf)))
 end

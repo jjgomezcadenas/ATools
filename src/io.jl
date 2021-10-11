@@ -245,6 +245,31 @@ end
 
 
 """
+    read_evtpar(infiles::Vector{String})
+
+Get the selected event parameters from file along with normalisation
+and rmin rmax info.
+"""
+function read_evtpar(infiles::Vector{String})
+    rmin   = typemax(Float64)
+    rmax   = typemin(Float64)
+    norm   = zero(Int64)
+    df_vec = DataFrame[]
+    for fn in infiles
+        s_conf = h5open(fn) do h5in
+            sim_conf = readh5_dset(h5in, "configuration", "RunConfiguration")[1]
+            push!(df_vec, readh5_todf(h5in, "selected_events", "EventParameters"))
+            return sim_conf
+        end
+        norm += s_conf.NEvent
+        rmin  = s_conf.Rmin < rmin ? s_conf.Rmin : rmin
+        rmax  = s_conf.Rmax > rmax ? s_conf.Rmax : rmax
+    end
+    return norm, rmin, rmax, vcat(df_vec...)
+end
+
+
+"""
     generate_hdf5_datatype
 
 returns a datatype object for saving any of the OutputDataset group type to hdf5
