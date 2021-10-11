@@ -341,16 +341,16 @@ Return fit parameters, fit function and plot
 """
 fit_profile(df1::DataFrame, c1::String, c2::String,
             tx1::String, ty1::String, fit="pol1", bins=25;
-            ybin_width::Float64=0.1, ymin::Float64=352.4, ymax::Float64=392.4,
-            min_proportion::Float64=0.0) =
+            ybin_width::Real=0.1, ymin::Real=352.4, ymax::Real=392.4,
+            min_proportion::Real=0.0) =
 	fit_profile(df1[!,c1], df1[!,c2], tx1, ty1, fit, bins,
                 ybin_width=ybin_width, ymin=ymin, ymax=ymax, min_proportion=min_proportion)
 
 
-function fit_profile(x1::Vector{Float64}, x2::Vector{Float64},
+function fit_profile(x1::Vector{<:Real}, x2::Vector{<:Real},
 	                 tx1::String, ty1::String, fit="pol1", bins=25;
-                     ybin_width::Float64=0.1, ymin::Float64=minimum(x2),
-                     ymax::Float64=maximum(x2), min_proportion::Float64=0.0)
+                     ybin_width::Real=0.1, ymin::Real=minimum(x2),
+                     ymax::Real=maximum(x2), min_proportion::Real=0.0)
 
     pdf1, _ = p1df(x1,x2, bins, ybin_width=ybin_width, ymin=ymin, ymax=ymax, min_proportion=min_proportion)
 

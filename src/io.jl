@@ -127,9 +127,9 @@ Will be extended when full electronics simulation ready!
     NEvent ::Int64   =    0
     Rmin   ::Float32 =  353.0
     Rmax   ::Float32 =  393.0
-    CalLin ::Float32 =    0.0#DOI Calibration linear term, to be implemented
-    CalCon ::Float32 =    0.0#DOI Calibration constant term
-    CalBias::Float32 =    0.0#DOI Calibration bias.
+    CalLin ::Float32 =    0.0 #DOI Calibration linear term, to be implemented
+    CalCon ::Float32 =    0.0 #DOI Calibration constant term
+    CalBias::Float32 =    0.0 #DOI Calibration bias.
 end
 
 

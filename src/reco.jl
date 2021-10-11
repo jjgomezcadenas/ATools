@@ -49,8 +49,8 @@ Given a calibration funcion and the physical limits of the Detector
 and function return the radius of interaction (maxr - DOI).
 """
 function predict_interaction_radius(cal_func::Function,
-        minr::Float64, maxr::Float64, bias::Float64=0.0)
-  function prediction(sigmas::Vector{Float64})
+        minr::Real, maxr::Real, bias::Real=zero(Real))
+  function prediction(sigmas::Vector{<:Real})
     rpred = cal_func.(sigmas) .+ bias
     rpred[rpred .< minr] .= minr
     rpred[rpred .> maxr] .= maxr
