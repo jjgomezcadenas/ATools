@@ -93,7 +93,7 @@ end
 Calculate the interaciton time given radius of interaction (ri) and detection time.
 """
 function interaction_time(df::DataFrame, ri::Symbol, td::Symbol,
-        rsipm::Real, n::Real=1.6)
+        rsipm::Real, n::Real=1.69)
     flight_time = time_of_flight(df, ri, rsipm, n)
     return uconvert.(ps, df[!, td]) .- flight_time
 end
@@ -106,13 +106,14 @@ Calculate the difference between the calculated and expected interaction
 time differences.
 """
 #TODO: Protections for which symbols valid?
-function CRT(df::DataFrame, times::Vector{Symbol}, radii::Vector{Symbol}, det_rad::Real)::Vector{<:Real}
+function CRT(df::DataFrame, times::Vector{Symbol},
+        radii::Vector{Symbol}, det_rad::Real, n::Real=1.69)::Vector{<:Real}
     int1_flight = time_of_flight(df, [:xs, :ys, :zs], [:xt1, :yt1, :zt1])
     int2_flight = time_of_flight(df, [:xs, :ys, :zs], [:xt2, :yt2, :zt2])
     true_dt     = int2_flight ./ ps .- int1_flight ./ ps
 
-    int1_det    = interaction_time(df, radii[1], times[1], det_rad)
-    int2_det    = interaction_time(df, radii[2], times[2], det_rad)
+    int1_det    = interaction_time(df, radii[1], times[1], det_rad, n)
+    int2_det    = interaction_time(df, radii[2], times[2], det_rad, n)
     calc_dt     = int2_det ./ ps .- int1_det ./ ps
 
     return calc_dt - true_dt
