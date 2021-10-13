@@ -9,19 +9,19 @@ struct LeftClosed  <: ValueBound end
 struct RightClosed <: ValueBound end
 
 
-function range_bound(xmin::T, xmax::T, ::Type{OpenBound  }) where T <: Number
+function range_bound(xmin::Real, xmax::Real, ::Type{OpenBound  })
 	x -> (x >  xmin) & (x <  xmax)
 end
 
-function range_bound(xmin::T, xmax::T, ::Type{ClosedBound}) where T <: Number
+function range_bound(xmin::Real, xmax::Real, ::Type{ClosedBound})
 	x -> (x >= xmin) & (x <= xmax)
 end
 
-function range_bound(xmin::T, xmax::T, ::Type{LeftClosed }) where T <: Number
+function range_bound(xmin::Real, xmax::Real, ::Type{LeftClosed })
 	x -> (x >= xmin) & (x <  xmax)
 end
 
-function range_bound(xmin::T, xmax::T, ::Type{RightClosed}) where T <: Number
+function range_bound(xmin::Real, xmax::Real, ::Type{RightClosed})
 	x -> (x >  xmin) .& (x <= xmax)
 end
 
@@ -45,8 +45,8 @@ end
 
 Given vector x, select values between xmin and xmax
 """
-function in_range(x::Vector{T}, xmin::T, xmax::T,
-				  interval::Type{S}=OpenBound) where {T <: Number, S <: ValueBound}
+function in_range(x::Vector{<:Real}, xmin::Real, xmax::Real,
+				  interval::Type{<:ValueBound}=OpenBound)
 	mask = broadcast(range_bound(xmin, xmax, interval), x)
     return x[mask]
 end
@@ -211,7 +211,7 @@ which the intensity is maximal.
 """
 find_max_xy(df::DataFrame, xc::String, yc::String) = find_max_xy(df[!, xc], df[!, yc])
 
-function find_max_xy(x::Vector{T}, y::Vector{S}) where {T, S}
+function find_max_xy(x::Vector{<:Real}, y::Vector{<:Real})
 	ymax, imax = findmax(y)
 	x_ymax     = x[imax]
 	return imax, x_ymax, ymax

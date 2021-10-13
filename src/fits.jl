@@ -43,7 +43,7 @@ function gpol3(ct)
 end
 
 
-function polfit(pol, x::Vector{T},y::Vector{T}, p0::Vector{T}) where T
+function polfit(pol, x::Vector{<:Real},y::Vector{<:Real}, p0::Vector{<:Real})
     fq = curve_fit(pol, x, y, p0)
     cfq = coef(fq)
     @info "coef(fq)" cfq
@@ -55,7 +55,7 @@ function polfit(pol, x::Vector{T},y::Vector{T}, p0::Vector{T}) where T
 end
 
 
-function fit_pol1(x::Vector{T},y::Vector{T}, ci=0.1) where T
+function fit_pol1(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
     @. pol(x, p) = p[1] + p[2] * x
     p0 = [1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
@@ -65,7 +65,7 @@ function fit_pol1(x::Vector{T},y::Vector{T}, ci=0.1) where T
 end
 
 
-function fit_pol2(x::Vector{T},y::Vector{T}, ci=0.1) where T
+function fit_pol2(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
     @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2
     p0 = [1.0, 1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
@@ -74,7 +74,7 @@ function fit_pol2(x::Vector{T},y::Vector{T}, ci=0.1) where T
 end
 
 
-function fit_pol3(x::Vector{T},y::Vector{T}, ci=0.1) where T
+function fit_pol3(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
     @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2 + p[4] * x^3
     p0 = [1.0, 1.0, 1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
@@ -98,14 +98,14 @@ struct FGauss
 	g::Vector{Function}
 end
 
-function gausg(μ::T, σ::T, C::T) where T
+function gausg(μ::Real, σ::Real, C::Real)
 	function gausx(x)
 		return C * pdf(Normal(μ, σ,), x)
 	end
 	return gausx
 end
 
-function gausg2(μ1::T, σ1::T, C1::T, μ2::T, σ2::T, C2::T) where T
+function gausg2(μ1::Real, σ1::Real, C1::Real, μ2::Real, σ2::Real, C2::Real)
 	function gausx(x)
 		return C1 * pdf(Normal(μ1, σ1,), x) + C2 * pdf(Normal(μ2, σ2,), x)
 	end
@@ -115,16 +115,17 @@ end
 @. gauss1fm(x, p) = p[1]* pdf(Normal(p[2], p[3]), x)
 @. gauss1(x, p) = p[1]* pdf(Normal(p[2], p[3]), x)
 @. gauss2(x, p) = p[1]* pdf(Normal(p[2], p[3]), x) +  p[4]* pdf(Normal(p[5], p[6]), x)
+@. gausscm(x, p) = p[1] * pdf(Normal(p[2], p[3]), x) + p[4] * pdf(Normal(p[2], p[5]), x)
 
-function gaussfm(mu::T) where T
-	function gauss(x::Vector{T}, p::Vector{T}) where T
+function gaussfm(mu::Real)
+	function gauss(x::Vector{<:Real}, p::Vector{<:Real})
 		return @. p[1]* pdf(Normal(mu, p[2]), x)
 	end
 	return gauss
 end
 
-function gauss2fm(mu::T) where T
-	function gauss2(x::Vector{T}, p::Vector{T}) where T
+function gauss2fm(mu::Real)
+	function gauss2(x::Vector{<:Real}, p::Vector{<:Real})
 		return @. p[1]* pdf(Normal(mu, p[2]), x) + p[3]* pdf(Normal(mu, p[4]), x)
 	end
 	return gauss2
@@ -340,16 +341,16 @@ Return fit parameters, fit function and plot
 """
 fit_profile(df1::DataFrame, c1::String, c2::String,
             tx1::String, ty1::String, fit="pol1", bins=25;
-            ybin_width::Float64=0.1, ymin::Float64=352.4, ymax::Float64=392.4,
-            min_proportion::Float64=0.0) =
+            ybin_width::Real=0.1, ymin::Real=352.4, ymax::Real=392.4,
+            min_proportion::Real=0.0) =
 	fit_profile(df1[!,c1], df1[!,c2], tx1, ty1, fit, bins,
                 ybin_width=ybin_width, ymin=ymin, ymax=ymax, min_proportion=min_proportion)
 
 
-function fit_profile(x1::Vector{Float64}, x2::Vector{Float64},
+function fit_profile(x1::Vector{<:Real}, x2::Vector{<:Real},
 	                 tx1::String, ty1::String, fit="pol1", bins=25;
-                     ybin_width::Float64=0.1, ymin::Float64=minimum(x2), ymax::Float64=maximum(x2),
-                     min_proportion::Float64=0.0)
+                     ybin_width::Real=0.1, ymin::Real=minimum(x2),
+                     ymax::Real=maximum(x2), min_proportion::Real=0.0)
 
     pdf1, _ = p1df(x1,x2, bins, ybin_width=ybin_width, ymin=ymin, ymax=ymax, min_proportion=min_proportion)
 
