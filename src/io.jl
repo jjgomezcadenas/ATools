@@ -289,11 +289,11 @@ end
 	write_lors_hdf5(filename, mlor)
 	Write lors in a hdf5 format required by petalorust (mlem algo)
 """
-function write_lors_hdf5(filename, mlor)
+function write_lors_hdf5(filename, mlor, directory::String="reco_info")
 	h5open(filename, "w") do h5f
 		dtype  = generate_hdf5_datatype(MlemLor)
 		dspace = dataspace(mlor)
-		grp    = create_group(h5f, "true_info")## This doesnt seem like a stable name
+		grp    = create_group(h5f, directory)
 		dset   = create_dataset(grp, "lors", dtype, dspace)
 		write_dataset(dset, dtype, mlor)
 	end
