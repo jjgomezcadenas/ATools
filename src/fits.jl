@@ -146,6 +146,21 @@ function cfit(ffit::Function, x::Vector{Float64}, y::Vector{Float64},
     return cfq
 end
 
+
+"""
+    cfit
+
+Take into account the errors on the measured variables. Assuming weights
+of 1/sigma^2 as in standard least squares.
+"""
+function cfit(ffit::Function, x::Vector{<:Real}, y::Vector{<:Real},
+	          yerr::Vector{<:Real}, p0::Vector{<:Real},
+              lb::Vector{<:Real}, ub::Vector{<:Real})
+	fq = curve_fit(ffit, x, y, yerr.^-2, p0, lower=lb, upper=ub)
+    return fq
+end
+
+
 function fit_gauss(h::Histogram)
 	c = centers(h)
 	w = h.weights * 1.0
