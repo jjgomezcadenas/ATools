@@ -243,10 +243,14 @@ end
 returns the fit and the plot
 """
 function fitg1(x, xs, bins, xmin, xmax;
-	           xgmin, xgmax, fbins=100, norm=true, fm=0.0)
+	           xgmin, xgmax, fbins=100, norm=true, fm=0.0, flex_mean=false)
 
 	h, p = hist1d(x, xs, bins, xmin, xmax, norm=norm, legend=true)
-    fg = fit_gauss_fm(x, xgmin, xgmax, bins=fbins, norm=norm, fm=fm)
+    if flex_mean
+        fg = fit_gauss(x, xgmin, xgmax, bins=fbins, norm=norm)
+    else
+        fg = fit_gauss_fm(x, xgmin, xgmax, bins=fbins, norm=norm, fm=fm)
+    end
 	gx = fg.g[1]
 	X = centers(h)
 	lbl = @sprintf "σ =%4.1f " fg.std[1]
