@@ -133,6 +133,28 @@ Will be extended when full electronics simulation ready!
 end
 
 
+"""
+	EventTypes
+
+Type to save the counts of types of events in a dataset.
+Contains:
+total: Number of events generated.
+empty: Number of events without any interaction.
+single: Number of events with only one interaction.
+prompt: Number of events with 2 reconstructable interactions.
+single_prompt: Number of events with one interaction with q in selected range.
+good_prompt: Number of events with two interactions with q in selected range.
+"""
+@kwdef mutable struct EventTypes <: OutputDataset
+	total        ::Int64 = 0
+	empty        ::Int64 = 0
+	single       ::Int64 = 0
+	prompt       ::Int64 = 0
+	single_prompt::Int64 = 0
+	good_prompt  ::Int64 = 0
+end
+
+
 ## Readers/Writers
 """
     readdf(dir)
