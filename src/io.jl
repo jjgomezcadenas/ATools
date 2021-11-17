@@ -41,6 +41,10 @@ struct MlemLor <: OutputDataset
     x2::Float32
     y2::Float32
     z2::Float32
+	q1::Float32
+	q2::Float32
+	E1::Float32
+	E2::Float32
 end
 
 
@@ -58,6 +62,8 @@ Struct representing the parameters for each hemisphere of a selected event.
     nsipm2   ::Int64   = zero(Int64)
 	q1       ::Float32 = zero(Float32)
     q2       ::Float32 = zero(Float32)
+	E1       ::Float32 = zero(Float32)
+	E2       ::Float32 = zero(Float32)
 	r1       ::Float32 = zero(Float32)
     r2       ::Float32 = zero(Float32)
     r1x      ::Float32 = zero(Float32)
