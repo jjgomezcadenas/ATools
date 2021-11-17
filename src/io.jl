@@ -41,6 +41,10 @@ struct MlemLor <: OutputDataset
     x2::Float32
     y2::Float32
     z2::Float32
+	q1::Float32
+	q2::Float32
+	E1::Float32
+	E2::Float32
 end
 
 
