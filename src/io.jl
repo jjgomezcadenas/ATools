@@ -34,7 +34,7 @@ abstract type OutputDataset end
 Struct representing a LOR
 """
 struct MlemLor <: OutputDataset
-    dx::Float32
+    dt::Float32
     x1::Float32
     y1::Float32
     z1::Float32
