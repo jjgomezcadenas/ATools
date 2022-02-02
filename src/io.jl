@@ -302,7 +302,7 @@ end
 """
     generate_hdf5_datatype
 
-returns a datatype object for saving any of the OutputDataset group type to hdf5
+returns a datatype object for saving any of the OutputDataset group type to hdf5.
 """
 function generate_hdf5_datatype(data_type::Type{<:OutputDataset})
     epdtype = HDF5.h5t_create(HDF5.H5T_COMPOUND, sizeof(data_type))
