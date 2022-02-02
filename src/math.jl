@@ -33,10 +33,10 @@ end
 
 Distance between two points.
 """
-
 function dxyz(x1::Vector{<:Real}, x2::Vector{<:Real})
     return sqrt((x1[1] - x2[1])^2 + (x1[2] - x2[2])^2 + (x1[3] - x2[3])^2)
 end
+
 
 """
 	gline2p(x1::Real, y1::Real, x2::Real, y2::Real)
@@ -44,19 +44,6 @@ end
 """
 function gline2p(x1::Real, y1::Real, x2::Real, y2::Real)
     fxy(x::Real) = y1 + (x - x1) * (y2 - y1)/(x2 -x1)
-end
-
-"""
-function wstd(x::Vector{<:Real}, q::Vector{<:Real})
-
-Compute the std deviation in x weighted by q:
-Sqrt(1/Q Sum_i (x - x_mean) * qi )
-"""
-function wstd(x::Vector{<:Real}, q::Vector{<:Real})
-	xmean = mean(x)
-	qs = sum((x.-xmean).^2 .* q)
-	Q = sum(q)
-	return sqrt(qs/Q)
 end
 
 
