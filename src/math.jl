@@ -61,12 +61,19 @@ end
 
 
 """
-	mean_std(x, xmin, xmax)
-	Returns mean and std for a vector x in the interval between xmin and xmax
+	mean_std(x::Vector{T}, xmin::T=typemin(T), xmax::T=typemax(T);
+	         w::Union{Nothing, Vector{T}}=nothing) where T
+Returns mean and std of a vector x in the interval between xmin and xmax.
+Using weights w if requested.
 """
-function mean_std(x::Vector{<:Real}, xmin::Real, xmax::Real)
-    xx = in_range(x, xmin, xmax)
-    xm = mean(xx)
-    xs = StatsBase.std(xx)
-    return xm, xs
+function mean_std(x::Vector{T}, xmin::T=typemin(T), xmax::T=typemax(T);
+	              w::Union{Nothing, Vector{T}}=nothing) where T
+	mask = broadcast(range_bound(xmin, xmax, ATools.OpenBound), x)
+    xx   = x[mask]
+	if isnothing(w)
+		ww = ones(eltype(xx), length(xx))
+	else
+		ww = w[mask]
+	end
+    return mean_and_std(xx, FrequencyWeights(ww), corrected=true)
 end
