@@ -17,7 +17,7 @@ function set_units(df::DataFrame)
     ## mm columns, assumes structure as 2021-10-05, should be generalised
     len_cols = [:r1, :r2, :r1x, :r2x, :x1, :x2, :xb1, :xb2, :xr1, :xr2,
         :xs, :xt1, :xt2, :y1, :y2, :yb1, :yb2, :yr1, :yr2, :ys, :yt1, :yt2, :z1,
-        :z2, :zb1, :zb2, :zr1, :zr2, :zs, :zt1, :zt2, :rt1, :rt2]
+        :z2, :zb1, :zb2, :zr1, :zr2, :zs, :zt1, :zt2]
 
     # ns cols:
     time_cols = [:t1, :t2, :ta1, :ta2, :tr1, :tr2]
