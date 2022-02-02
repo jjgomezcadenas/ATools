@@ -7,10 +7,6 @@
 
     @test ATools.dxyz([1,1,1], [2,2,2]) ≈ sqrt(3.)
 
-
-    qs = ones(length(data))
-    @test isapprox(ATools.wstd(data, qs), std(data), rtol=1e-4)
-
     m,s = ATools.mean_std(x, 5, 10)
     @test m ≈ mean(y)
     @test s ≈ std(y)
