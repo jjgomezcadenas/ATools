@@ -87,13 +87,15 @@ end
     time_of_flight(df::DataFrame, source::Vector{Symbol},
                     interaction::Vector{Symbol}, n::Real)
 
-Time of flight between two points
+Time of flight between two arbitrary points in a medium of refraction index n.
 """
 function time_of_flight(df::DataFrame, source_xyz::Vector{Symbol},
         int_xyz::Vector{Symbol}, n::Real=1.0)
+    function displacement(x1, y1, z1, x2, y2, z2)
+        norm.(eachrow(hcat(x1, y1, z1) - hcat(x2, y2, z2)))
+    end
     cc       = SpeedOfLightInVacuum / n
-    pos_df   = combine(df, source_xyz => ByRow(vcat) => :spos, int_xyz => ByRow(vcat) => :ipos)
-    path_len = combine(pos_df, [:ipos, :spos] => ByRow((x, y) -> norm(x .- y)) => :path)
+    path_len = combine(df, vcat(int_xyz, source_xyz) => displacement => :path)
     return uconvert.(ps, path_len[!, :path] ./ cc)
 end
 
