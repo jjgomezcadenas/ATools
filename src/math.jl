@@ -39,13 +39,9 @@ function dxyz(x1::Vector{<:Real}, x2::Vector{<:Real})
 end
 
 """
-	gline2p(x1,y1,x2, y2)
-	Line that goes through two points
+	gline2p(x1::Real, y1::Real, x2::Real, y2::Real)
+	Return function of a line that goes through (x1, y1), (x2, y2)
 """
-function gline2p(x1, y1, x2, y2)
-    fxy(x) = y1 + (x - x1) * (y2 - y1)/(x2 -x1)
-end
-
 function gline2p(x1::Real, y1::Real, x2::Real, y2::Real)
     fxy(x::Real) = y1 + (x - x1) * (y2 - y1)/(x2 -x1)
 end
