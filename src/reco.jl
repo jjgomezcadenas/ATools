@@ -29,17 +29,28 @@ end
 
 
 """
-	radial_correction(xb::Vector{<:Real}, yb::Vector{<:Real},zb::Vector{<:Real},
-	                            r::Vector{<:Real})
+	radial_correction(x::Vector{<:Real}, y::Vector{<:Real},
+                      z::Vector{<:Real}, r::Vector{<:Real})
 Computes the x, y position of the interaction from a radius
 of interaction and the x, y position from the SiPM barycentre
+Kept for backwards compatibility, z argument pointless
 """
-function radial_correction(xb::Vector{<:Real}, yb::Vector{<:Real},
-    zb::Vector{<:Real}, r::Vector{<:Real})
-    ϕ = atan.(yb, xb)
-    x = r .* cos.(ϕ)
-    y = r .* sin.(ϕ)
-    return x, y, zb
+function radial_correction(x::Vector{<:Real}, y::Vector{<:Real},
+                  z::Vector{<:Real}, r::Vector{<:Real})
+    xy = reinterpret(reshape, Float32, calculate_xy.(x, y, r))
+    xy[1,:], xy[2,:], z
+end
+
+
+"""
+    calculate_xy(x1::Real, y1::Real, r::Real)
+Calculate the xy position of a ray at r given x1 and y1 at a different r
+"""
+function calculate_xy(x1::Real, y1::Real, r::Real)
+    ϕ = atan(y1, x1)
+    x = r * cos(ϕ)
+    y = r * sin(ϕ)
+    return x, y
 end
 
 
