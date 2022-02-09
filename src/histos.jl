@@ -138,32 +138,34 @@ end
 
 
 """
-    hist2d(x,y, nbins, xl, yl)
+    hist2d(x::Vector{T}, y::Vector{T}, nbins::Integer,
+           xl::String, yl::String,
+           xmin::T=typemin(T), xmax::T=typemax(T),
+           ymin::T=typemin(T), ymax::T=typemax(T)) where T <: Real
 
 return a 2d histogram and its corresponding graphics (plots)
+given data x, y, labels xl and yl and limits for each axis.
 """
 function hist2d(x::Vector{T},y::Vector{T}, nbins::Integer,
                 xl::String, yl::String,
                 xmin::T=typemin(T), xmax::T=typemax(T),
-                ymin::T=typemin(T), ymax::T=typemax(T); title="") where T
-    function xy(i)
-        return diff(h.edges[i])/2 .+ h.edges[i][1:end-1]
+                ymin::T=typemin(T), ymax::T=typemax(T); title="") where T <: Real
+    function select_data(xval::T, yval::T)
+        range_bound(xmin, xmax, OpenBound)(xval) .&
+        range_bound(ymin, ymax, OpenBound)(yval)
     end
-
-    df = DataFrame(x=y,y=x)
-    df1 = select_by_column_value_interval(df, "y", xmin, xmax)
-    df2 = select_by_column_value_interval(df1, "x", ymin, ymax)
-    data = (df2.x, df2.y)
-    h = fit(Histogram, data, nbins=nbins)
-    ye = xy(1)
-    xe = xy(2)
-    hm = heatmap(xe, ye, h.weights)
+    mask = select_data.(x, y)
+    data = (y[mask], x[mask])
+    h    = fit(Histogram, data, nbins=nbins)
+    ye   = centers(edges(h, 1))
+    xe   = centers(edges(h, 2))
+    hm   = heatmap(xe, ye, h.weights)
     xlabel!(xl)
     ylabel!(yl)
     if title != ""
         title!(title)
     end
-    return h,hm
+    return h, hm
 end
 
 
