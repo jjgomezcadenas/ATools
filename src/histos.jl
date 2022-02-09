@@ -48,8 +48,8 @@ end
 
 edges of the histogram
 """
-function edges(h::Histogram)
-    collect(h.edges[1])
+function edges(h::Histogram, index::Int64=1)
+    collect(h.edges[index])
 end
 
 
