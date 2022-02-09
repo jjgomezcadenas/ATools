@@ -174,13 +174,12 @@ returns the weighted mean and std of an array given a minimum
 bin weight for consideration.
 """
 function fmean_std(x::Vector{<:Real}, min_prop::Float64=0.1)
-  mask_func = x -> x .> min_prop * maximum(x)
-  function filt_mean(w::SubArray{<:Real})
-      return [mean_and_std(x[mask_func(w)],
-                           FrequencyWeights(w[mask_func(w)]),
-                           corrected=true)]
-  end
-  return filt_mean
+    mask_func = weights -> weights .> min_prop * maximum(weights)
+    function filt_mean(w::SubArray{<:Real})
+        mask = mask_func(w)
+        return [mean_and_std(x[mask], FrequencyWeights(w[mask]), corrected=true)]
+    end
+    return filt_mean
 end
 
 
