@@ -119,61 +119,70 @@ function fit_pol3(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
          gpol3(coef(fq)))
 end
 
-"""
-	fit_gauss(y, xmin, xmax, bins=25)
-
-Fit a normal distribution to data
-"""
 
 struct FGauss
-	mu::Vector{Number}
-	std::Vector{Number}
-	C::Vector{Number}
-	h::Histogram
-	X::Vector{Number}
-	Y::Vector{Number}
-	g::Vector{Function}
+	mu ::Vector{<:Real}
+	std::Vector{<:Real}
+	C  ::Vector{<:Real}
+	h  ::Histogram
+	X  ::Vector{<:Real}
+	Y  ::Vector{<:Real}
+	g  ::Vector{Function}
 end
 
-function gausg(μ::Real, σ::Real, C::Real)
-	function gausx(x)
+
+"""
+    gausg(μ::Real, σ::Real, C::Real)::Function
+Return a Gaussian function with parameters μ, σ and normalisation C.
+"""
+function gausg(μ::Real, σ::Real, C::Real)::Function
+	function gausx(x::Real)
 		return C * pdf(Normal(μ, σ,), x)
 	end
 	return gausx
 end
 
-function gausg2(μ1::Real, σ1::Real, C1::Real, μ2::Real, σ2::Real, C2::Real)
-	function gausx(x)
+
+"""
+    gausg2(μ1::Real, σ1::Real, C1::Real, μ2::Real, σ2::Real, C2::Real)
+Return a function for the sum of two Gaussians with parameters
+    μ1, σ1 and μ2, σ2 and normalisations C1 and C2.
+"""
+function gausg2(μ1::Real, σ1::Real, C1::Real, μ2::Real, σ2::Real, C2::Real)::Function
+	function gausx(x::Real)
 		return C1 * pdf(Normal(μ1, σ1,), x) + C2 * pdf(Normal(μ2, σ2,), x)
 	end
 	return gausx
 end
 
-@. gauss1fm(x, p) = p[1]* pdf(Normal(p[2], p[3]), x)
-@. gauss1(x, p) = p[1]* pdf(Normal(p[2], p[3]), x)
-@. gauss2(x, p) = p[1]* pdf(Normal(p[2], p[3]), x) +  p[4]* pdf(Normal(p[5], p[6]), x)
-@. gausscm(x, p) = p[1] * pdf(Normal(p[2], p[3]), x) + p[4] * pdf(Normal(p[2], p[5]), x)
+@. gauss1(x, p)   = p[1] * pdf(Normal(p[2], p[3]), x)
+@. gauss2(x, p)   = p[1] * pdf(Normal(p[2], p[3]), x) + p[4] * pdf(Normal(p[5], p[6]), x)
+@. gauss2cm(x, p) = p[1] * pdf(Normal(p[2], p[3]), x) + p[4] * pdf(Normal(p[2], p[5]), x)
 
-function gaussfm(mu::Real)
+
+"""
+    gaussfm(mu::Real)::Function
+Return a Gaussian Fitting function with a fixed mean mu.
+"""
+function gaussfm(mu::Real)::Function
 	function gauss(x::Vector{<:Real}, p::Vector{<:Real})
 		return @. p[1]* pdf(Normal(mu, p[2]), x)
 	end
 	return gauss
 end
 
-function gauss2fm(mu::Real)
+
+"""
+    gauss2fm(mu::Real)::Function
+Return a function of the sum of two Gaussians with a fixed common mean mu.
+"""
+function gauss2fm(mu::Real)::Function
 	function gauss2(x::Vector{<:Real}, p::Vector{<:Real})
 		return @. p[1]* pdf(Normal(mu, p[2]), x) + p[3]* pdf(Normal(mu, p[4]), x)
 	end
 	return gauss2
 end
 
-function gauss1fm(mu)
-    function gauss1(x,p)
-        return @. p[1]* pdf(Normal(mu, p[2]), x)
-    end
-    return gauss1
-end
 
 function cfit(ffit::Function, x::Vector{Float64}, y::Vector{Float64},
 	                         p0::Vector{Float64}, lb::Vector{Float64}, ub::Vector{Float64})
@@ -198,6 +207,11 @@ function cfit(ffit::Function, x::Vector{<:Real}, y::Vector{<:Real},
 end
 
 
+"""
+	fit_gauss(y, xmin, xmax, bins=25)
+
+Fit a normal distribution to data
+"""
 function fit_gauss(h::Histogram)
 	c = centers(h)
 	w = h.weights * 1.0
