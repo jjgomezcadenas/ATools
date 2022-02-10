@@ -15,34 +15,52 @@ function lfit(ndf::DataFrame)
 end
 
 struct RFit
-	fitpar::Vector{Number}
-	fitstd::Vector{Number}
+	fitpar::Vector{<:Number}
+	fitstd::Vector{<:Number}
 	ci::Vector{Tuple{Number, Number}}
 	g::Function
 end
 
-function gpol1(ct)
-    function f1(z)
+
+"""
+    gpol1(ct::Vector{<:Real})::Function
+return a degree 1 polynomial function with parameters ct.
+"""
+function gpol1(ct::Vector{<:Real})::Function
+    function f1(z::Real)
         return ct[1] + ct[2] * z
     end
     return f1
 end
 
-function gpol2(ct)
-    function f2(z)
+
+"""
+    gpol2(ct::Vector{<:Real})::Function
+return a degree 2 polynomial function with parameters ct.
+"""
+function gpol2(ct::Vector{<:Real})::Function
+    function f2(z::Real)
         return ct[1] + ct[2] * z + ct[3] * z^2
     end
     return f2
 end
 
-function gpol3(ct)
-    function f3(z)
+
+"""
+    gpol2(ct::Vector{<:Real})::Function
+return a degree 3 polynomial function with parameters ct.
+"""
+function gpol3(ct::Vector{<:Real})::Function
+    function f3(z::Real)
         return ct[1] + ct[2] * z + ct[3] * z^2 + ct[4] * z^3
     end
     return f3
 end
 
 
+"""
+    func1dfit(func::Function)
+"""
 function polfit(pol, x::Vector{<:Real},y::Vector{<:Real}, p0::Vector{<:Real})
     fq = curve_fit(pol, x, y, p0)
     cfq = coef(fq)
