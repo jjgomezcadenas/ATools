@@ -59,14 +59,17 @@ end
 
 
 """
-    func1dfit(func::Function, x::Vector{<:Real}, y::Vector{<:Real}, p0::Vector{<:Real})
+    func1dfit(ffit::Function, x::Vector{<:Real},
+              y::Vector{<:Real}, p0::Vector{<:Real},
+              lb::Vector{Float64}, ub::Vector{Float64})
 
 Fit a function to the data x, y with start prediction p0
 and return coefficients and errors.
 """
-function func1dfit(func::Function, x::Vector{<:Real},
-                   y::Vector{<:Real}, p0::Vector{<:Real})
-    fq = curve_fit(func, x, y, p0)
+function func1dfit(ffit::Function, x::Vector{<:Real},
+                   y::Vector{<:Real}, p0::Vector{<:Real},
+                   lb::Vector{Float64}, ub::Vector{Float64})
+    fq = curve_fit(ffit, x, y, p0, lower=lb, upper=ub)
     cfq = coef(fq)
     @info "coef(fq)" cfq
     sfq = stderror(fq)
@@ -74,6 +77,22 @@ function func1dfit(func::Function, x::Vector{<:Real},
     @info "margin_of_error (90%)" margin_error(fq, 0.1)
     @info " confidence_interval (90%)" confidence_interval(fq, 0.1)
     return cfq, sfq
+end
+
+
+"""
+    func1dfit(ffit::Function, x::Vector{<:Real}, y::Vector{<:Real},
+              yerr::Vector{<:Real}, p0::Vector{<:Real},
+              lb::Vector{<:Real}, ub::Vector{<:Real})
+Fit function ffit to data x,y taking into account the errors
+on the y (yerr). Assumes weights of 1/sigma^2 as in standard least squares
+and returns fit result.
+"""
+function func1dfit(ffit::Function, x::Vector{<:Real}, y::Vector{<:Real},
+	               yerr::Vector{<:Real}, p0::Vector{<:Real},
+                   lb::Vector{<:Real}, ub::Vector{<:Real})
+	fq = curve_fit(ffit, x, y, yerr.^-2, p0, lower=lb, upper=ub)
+    return fq
 end
 
 
@@ -181,29 +200,6 @@ function gauss2fm(mu::Real)::Function
 		return @. p[1]* pdf(Normal(mu, p[2]), x) + p[3]* pdf(Normal(mu, p[4]), x)
 	end
 	return gauss2
-end
-
-
-function cfit(ffit::Function, x::Vector{Float64}, y::Vector{Float64},
-	                         p0::Vector{Float64}, lb::Vector{Float64}, ub::Vector{Float64})
-	fq = curve_fit(ffit, x, y, p0, lower=lb, upper=ub)
-    cfq = coef(fq)
-    @debug "coef(fq)" cfq
-    return cfq
-end
-
-
-"""
-    cfit
-
-Take into account the errors on the measured variables. Assuming weights
-of 1/sigma^2 as in standard least squares.
-"""
-function cfit(ffit::Function, x::Vector{<:Real}, y::Vector{<:Real},
-	          yerr::Vector{<:Real}, p0::Vector{<:Real},
-              lb::Vector{<:Real}, ub::Vector{<:Real})
-	fq = curve_fit(ffit, x, y, yerr.^-2, p0, lower=lb, upper=ub)
-    return fq
 end
 
 
