@@ -36,7 +36,7 @@ using LsqFit
     lb = fill( 0.0, length(p0))
     ub = fill(20.0, length(p0))
     pol3_fit = @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2 + p[4] * x^3
-    fit_result = ATools.cfit(pol3_fit, x, y, fill(err_sigma, length(y)), p0, lb, ub)
+    fit_result = ATools.func1dfit(pol3_fit, x, y, fill(err_sigma, length(y)), p0, lb, ub)
     @test fit_result.converged
     @test all(isapprox.(coef(fit_result), p0; atol=err_sigma))
 end
