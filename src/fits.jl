@@ -59,10 +59,14 @@ end
 
 
 """
-    func1dfit(func::Function)
+    func1dfit(func::Function, x::Vector{<:Real}, y::Vector{<:Real}, p0::Vector{<:Real})
+
+Fit a function to the data x, y with start prediction p0
+and return coefficients and errors.
 """
-function polfit(pol, x::Vector{<:Real},y::Vector{<:Real}, p0::Vector{<:Real})
-    fq = curve_fit(pol, x, y, p0)
+function func1dfit(func::Function, x::Vector{<:Real},
+                   y::Vector{<:Real}, p0::Vector{<:Real})
+    fq = curve_fit(func, x, y, p0)
     cfq = coef(fq)
     @info "coef(fq)" cfq
     sfq = stderror(fq)
