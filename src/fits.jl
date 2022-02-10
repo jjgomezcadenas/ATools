@@ -77,7 +77,12 @@ function func1dfit(func::Function, x::Vector{<:Real},
 end
 
 
-function fit_pol1(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
+"""
+    fit_pol1(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
+Fit a 1st degree polynomial to the data x, y and return
+a RFit object with the result.
+"""
+function fit_pol1(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
     @. pol(x, p) = p[1] + p[2] * x
     p0 = [1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
@@ -87,7 +92,12 @@ function fit_pol1(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
 end
 
 
-function fit_pol2(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
+"""
+    fit_pol2(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
+Fit a 2nd degree polynomial to the data x, y and return
+a RFit object with the result.
+"""
+function fit_pol2(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
     @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2
     p0 = [1.0, 1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
@@ -96,7 +106,12 @@ function fit_pol2(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
 end
 
 
-function fit_pol3(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
+"""
+    fit_pol3(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
+Fit a 3rd degree polynomial to the data x, y and return
+a RFit object with the result.
+"""
+function fit_pol3(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
     @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2 + p[4] * x^3
     p0 = [1.0, 1.0, 1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
