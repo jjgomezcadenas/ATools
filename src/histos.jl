@@ -34,6 +34,7 @@ function hist1d(x::Vector{<:Real}, bins::Vector{<:Real}, norm=false)
     return h
 end
 
+
 function hist1d(x::Vector{T}, nbins::Integer,
                 xmin::T=typemin(T), xmax::T=typemax(T), norm=false) where T
     xx   = in_range(x, xmin, xmax)
@@ -62,7 +63,7 @@ centers(h::Histogram) = centers(edges(h))
 
 
 """
-    centers
+    centers(edges::Vector{<:Real})
 
 Calculate the bin centers from a vector of bin edges
 """
@@ -74,7 +75,7 @@ end
 """
     hist_weights
 
-return histogram a set of data and return the bin weights.
+return histogram weights of a set of data.
 """
 function hist_weights(edges::Vector{<:Real})
   function get_weights(y::SubArray{<:Real})
@@ -84,15 +85,23 @@ function hist_weights(edges::Vector{<:Real})
   return get_weights
 end
 
-
+"""
+    hist1d(x::Vector{T}, xs::String, nbins::Integer,
+           xmin::T=typemin(T), xmax::T=typemin(T);
+           norm::Bool=false, datap::Bool=true,
+           markersize::Int64=3, fwl::Bool=false,
+           label::String="", legend::Bool=false) where T <: Real
+return 1D histogram and plot axes for data x and number of bins nbins.
+"""
 function hist1d(x::Vector{T}, xs::String, nbins::Integer,
                 xmin::T=typemin(T), xmax::T=typemax(T);
-                norm=false, datap = true, markersize=3, fwl=false,
-                label="", legend=false) where T
+                norm::Bool=false, datap::Bool=true,
+                markersize::Int64=3, fwl::Bool=false,
+                label::String="", legend::Bool=false) where T <: Real
 
-    return hist1d(hist1d(x, nbins, xmin, xmax, norm), xs,
-                         datap=datap, markersize=markersize, fwl=fwl,
-                         label=label, legend=legend)
+    h = hist1d(x, nbins, xmin, xmax, norm)
+    return h, hist1d(h, xs, datap=datap, markersize=markersize, fwl=fwl,
+                     label=label, legend=legend)
 end
 
 
