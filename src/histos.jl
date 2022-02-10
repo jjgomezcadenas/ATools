@@ -96,24 +96,32 @@ function hist1d(x::Vector{T}, xs::String, nbins::Integer,
 end
 
 
-function hist1d(h::Histogram, xs::String; datap=true, markersize=3, fwl=false,
-                label="", legend=false)
+"""
+    hist1d(h::Histogram, xs::String;
+           datap::Bool=true, markersize::Int64=3, fwl::Bool=false,
+           label::String="", legend::Bool=false)
+Plot 1D histogram from Histogram object and options.
+"""
+function hist1d(h::Histogram, xs::String;
+                datap::Bool=true, markersize::Int64=3, fwl::Bool=false,
+                label::String="", legend::Bool=false)
 
     if datap
-        yg = h.weights * 1.0
         xg = centers(h)
-        p = scatter(xg,yg, yerr = sqrt.(yg), markersize=markersize, label=label, legend=legend)
+        yg = eltype(xg).(h.weights)
+        p  = scatter(xg, yg, yerr=sqrt.(yg),
+                     markersize=markersize, label=label, legend=legend)
         if fwl
-            p = plot!(p, xg,yg, yerr = sqrt.(yg), fmt = :png,
+            p = plot!(p, xg, yg, yerr=sqrt.(yg), fmt=:png,
                       linewidth=1, label=label, legend=legend)
         end
     else
-        p = plot(h, xlabel=xl, fmt = :png, yl="frequency")
+        p = plot(h, xlabel=xs, fmt=:png, yl="frequency")
     end
     xlabel!(xs)
     ylabel!("frequency")
 
-    return h, p
+    return p
 end
 
 
