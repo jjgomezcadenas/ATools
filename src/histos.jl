@@ -116,24 +116,31 @@ function hist1d(h::Histogram, xs::String; datap=true, markersize=3, fwl=false,
     return h, p
 end
 
-function hist1d(h1::Histogram, h2::Histogram, xs::String; markersize=2, norm=false)
+
+"""
+    plot2hist1d(h1::Histogram, h2::Histogram, xs::String;
+                markersize::Int64=2, norm::Bool=false)
+Plot two 1D histograms on the same axes.
+"""
+function plot2hist1d(h1::Histogram, h2::Histogram, xs::String;
+                     markersize::Int64=2, norm::Bool=false)
 
     if norm
         h1 = StatsBase.normalize(h1, mode=:density)
         h2 = StatsBase.normalize(h2, mode=:density)
     end
 
-    yg1 = h1.weights * 1.0
     xg1 = centers(h1)
-    yg2 = h2.weights * 1.0
+    yg1 = eltype(xg1).(h1.weights)
     xg2 = centers(h2)
+    yg2 = eltype(xg2).(h2.weights)
 
-    p1 = scatter(xg1,yg1, yerr = sqrt.(yg1), fmt = :png, markersize=markersize)
-    p  = scatter!(p1,xg2,yg2, yerr = sqrt.(yg2), fmt = :png, markersize=markersize)
+    p1 = scatter(     xg1, yg1, yerr=sqrt.(yg1), fmt=:png, markersize=markersize)
+    p1 = scatter!(p1, xg2, yg2, yerr=sqrt.(yg2), fmt=:png, markersize=markersize)
     xlabel!(xs)
     ylabel!("frequency")
 
-    return p
+    return p1
 end
 
 
