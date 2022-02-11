@@ -37,7 +37,8 @@ Kept for backwards compatibility, z argument pointless
 """
 function radial_correction(x::Vector{<:Real}, y::Vector{<:Real},
                   z::Vector{<:Real}, r::Vector{<:Real})
-    xy = reinterpret(reshape, Float32, calculate_xy.(x, y, r))
+    xy = calculate_xy.(x, y, r)
+    xy = reinterpret(reshape, eltype(xy[1]), xy)
     xy[1,:], xy[2,:], z
 end
 
