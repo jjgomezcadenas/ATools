@@ -15,36 +15,61 @@ function lfit(ndf::DataFrame)
 end
 
 struct RFit
-	fitpar::Vector{Number}
-	fitstd::Vector{Number}
+	fitpar::Vector{<:Number}
+	fitstd::Vector{<:Number}
 	ci::Vector{Tuple{Number, Number}}
 	g::Function
 end
 
-function gpol1(ct)
-    function f1(z)
+
+"""
+    gpol1(ct::Vector{<:Real})::Function
+return a degree 1 polynomial function with parameters ct.
+"""
+function gpol1(ct::Vector{<:Real})::Function
+    function f1(z::Real)
         return ct[1] + ct[2] * z
     end
     return f1
 end
 
-function gpol2(ct)
-    function f2(z)
+
+"""
+    gpol2(ct::Vector{<:Real})::Function
+return a degree 2 polynomial function with parameters ct.
+"""
+function gpol2(ct::Vector{<:Real})::Function
+    function f2(z::Real)
         return ct[1] + ct[2] * z + ct[3] * z^2
     end
     return f2
 end
 
-function gpol3(ct)
-    function f3(z)
+
+"""
+    gpol2(ct::Vector{<:Real})::Function
+return a degree 3 polynomial function with parameters ct.
+"""
+function gpol3(ct::Vector{<:Real})::Function
+    function f3(z::Real)
         return ct[1] + ct[2] * z + ct[3] * z^2 + ct[4] * z^3
     end
     return f3
 end
 
 
-function polfit(pol, x::Vector{<:Real},y::Vector{<:Real}, p0::Vector{<:Real})
-    fq = curve_fit(pol, x, y, p0)
+"""
+    func1dfit(ffit::Function, x::Vector{<:Real},
+              y::Vector{<:Real}, p0::Vector{<:Real},
+              lb::Vector{Float64}, ub::Vector{Float64})
+
+Fit a function to the data x, y with start prediction p0
+and return coefficients and errors.
+"""
+function func1dfit(ffit::Function, x::Vector{<:Real},
+                   y::Vector{<:Real}, p0::Vector{<:Real},
+                   lb::Vector{Float64}, ub::Vector{Float64})
+    fq = curve_fit(ffit, x, y, p0, lower=lb, upper=ub)
     cfq = coef(fq)
     @info "coef(fq)" cfq
     sfq = stderror(fq)
@@ -55,7 +80,28 @@ function polfit(pol, x::Vector{<:Real},y::Vector{<:Real}, p0::Vector{<:Real})
 end
 
 
-function fit_pol1(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
+"""
+    func1dfit(ffit::Function, x::Vector{<:Real}, y::Vector{<:Real},
+              yerr::Vector{<:Real}, p0::Vector{<:Real},
+              lb::Vector{<:Real}, ub::Vector{<:Real})
+Fit function ffit to data x,y taking into account the errors
+on the y (yerr). Assumes weights of 1/sigma^2 as in standard least squares
+and returns fit result.
+"""
+function func1dfit(ffit::Function, x::Vector{<:Real}, y::Vector{<:Real},
+	               yerr::Vector{<:Real}, p0::Vector{<:Real},
+                   lb::Vector{<:Real}, ub::Vector{<:Real})
+	fq = curve_fit(ffit, x, y, yerr.^-2, p0, lower=lb, upper=ub)
+    return fq
+end
+
+
+"""
+    fit_pol1(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
+Fit a 1st degree polynomial to the data x, y and return
+a RFit object with the result.
+"""
+function fit_pol1(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
     @. pol(x, p) = p[1] + p[2] * x
     p0 = [1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
@@ -65,7 +111,12 @@ function fit_pol1(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
 end
 
 
-function fit_pol2(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
+"""
+    fit_pol2(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
+Fit a 2nd degree polynomial to the data x, y and return
+a RFit object with the result.
+"""
+function fit_pol2(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
     @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2
     p0 = [1.0, 1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
@@ -74,7 +125,12 @@ function fit_pol2(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
 end
 
 
-function fit_pol3(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
+"""
+    fit_pol3(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
+Fit a 3rd degree polynomial to the data x, y and return
+a RFit object with the result.
+"""
+function fit_pol3(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
     @. pol(x, p) = p[1] + p[2] * x + p[3] * x^2 + p[4] * x^3
     p0 = [1.0, 1.0, 1.0, 1.0]
     fq = curve_fit(pol, x, y, p0)
@@ -82,133 +138,130 @@ function fit_pol3(x::Vector{<:Real},y::Vector{<:Real}, ci=0.1)
          gpol3(coef(fq)))
 end
 
-"""
-	fit_gauss(y, xmin, xmax, bins=25)
-
-Fit a normal distribution to data
-"""
 
 struct FGauss
-	mu::Vector{Number}
-	std::Vector{Number}
-	C::Vector{Number}
-	h::Histogram
-	X::Vector{Number}
-	Y::Vector{Number}
-	g::Vector{Function}
+	mu ::Vector{<:Real}
+	std::Vector{<:Real}
+	C  ::Vector{<:Real}
+	h  ::Histogram
+	X  ::Vector{<:Real}
+	Y  ::Vector{<:Real}
+	g  ::Vector{Function}
 end
 
-function gausg(μ::Real, σ::Real, C::Real)
-	function gausx(x)
+
+"""
+    gausg(μ::Real, σ::Real, C::Real)::Function
+Return a Gaussian function with parameters μ, σ and normalisation C.
+"""
+function gausg(μ::Real, σ::Real, C::Real)::Function
+	function gausx(x::Real)
 		return C * pdf(Normal(μ, σ,), x)
 	end
 	return gausx
 end
 
-function gausg2(μ1::Real, σ1::Real, C1::Real, μ2::Real, σ2::Real, C2::Real)
-	function gausx(x)
+
+"""
+    gausg2(μ1::Real, σ1::Real, C1::Real, μ2::Real, σ2::Real, C2::Real)
+Return a function for the sum of two Gaussians with parameters
+    μ1, σ1 and μ2, σ2 and normalisations C1 and C2.
+"""
+function gausg2(μ1::Real, σ1::Real, C1::Real, μ2::Real, σ2::Real, C2::Real)::Function
+	function gausx(x::Real)
 		return C1 * pdf(Normal(μ1, σ1,), x) + C2 * pdf(Normal(μ2, σ2,), x)
 	end
 	return gausx
 end
 
-@. gauss1fm(x, p) = p[1]* pdf(Normal(p[2], p[3]), x)
-@. gauss1(x, p) = p[1]* pdf(Normal(p[2], p[3]), x)
-@. gauss2(x, p) = p[1]* pdf(Normal(p[2], p[3]), x) +  p[4]* pdf(Normal(p[5], p[6]), x)
-@. gausscm(x, p) = p[1] * pdf(Normal(p[2], p[3]), x) + p[4] * pdf(Normal(p[2], p[5]), x)
+@. gauss1(x, p)   = p[1] * pdf(Normal(p[2], p[3]), x)
+@. gauss2(x, p)   = p[1] * pdf(Normal(p[2], p[3]), x) + p[4] * pdf(Normal(p[5], p[6]), x)
+@. gauss2cm(x, p) = p[1] * pdf(Normal(p[2], p[3]), x) + p[4] * pdf(Normal(p[2], p[5]), x)
 
-function gaussfm(mu::Real)
+
+"""
+    gaussfm(mu::Real)::Function
+Return a Gaussian Fitting function with a fixed mean mu.
+"""
+function gaussfm(mu::Real)::Function
 	function gauss(x::Vector{<:Real}, p::Vector{<:Real})
 		return @. p[1]* pdf(Normal(mu, p[2]), x)
 	end
 	return gauss
 end
 
-function gauss2fm(mu::Real)
+
+"""
+    gauss2fm(mu::Real)::Function
+Return a function of the sum of two Gaussians with a fixed common mean mu.
+"""
+function gauss2fm(mu::Real)::Function
 	function gauss2(x::Vector{<:Real}, p::Vector{<:Real})
 		return @. p[1]* pdf(Normal(mu, p[2]), x) + p[3]* pdf(Normal(mu, p[4]), x)
 	end
 	return gauss2
 end
 
-function gauss1fm(mu)
-    function gauss1(x,p)
-        return @. p[1]* pdf(Normal(mu, p[2]), x)
-    end
-    return gauss1
-end
-
-function cfit(ffit::Function, x::Vector{Float64}, y::Vector{Float64},
-	                         p0::Vector{Float64}, lb::Vector{Float64}, ub::Vector{Float64})
-	fq = curve_fit(ffit, x, y, p0, lower=lb, upper=ub)
-    cfq = coef(fq)
-    @debug "coef(fq)" cfq
-    return cfq
-end
-
 
 """
-    cfit
+	fit_gauss(h::Histogram)
 
-Take into account the errors on the measured variables. Assuming weights
-of 1/sigma^2 as in standard least squares.
+Fit a normal distribution to a Histogram and return FGauss object.
 """
-function cfit(ffit::Function, x::Vector{<:Real}, y::Vector{<:Real},
-	          yerr::Vector{<:Real}, p0::Vector{<:Real},
-              lb::Vector{<:Real}, ub::Vector{<:Real})
-	fq = curve_fit(ffit, x, y, yerr.^-2, p0, lower=lb, upper=ub)
-    return fq
-end
-
-
 function fit_gauss(h::Histogram)
 	c = centers(h)
-	w = h.weights * 1.0
+	w = eltype(c).(h.weights)
 	@debug "histo"  w c
 	mu, sigma = mean_and_std(c, Weights(h.weights); corrected = false)
 	@debug "mu, std" mu, sigma
 
 	# fit parameters lb, ub, po are lower, upper bounds and pars
-    lb = [0., mu - 100.0*sigma, sigma/100.0]
-    ub = [100*sum(w), mu + 100.0*sigma, 100.0*sigma]
-    p0_bounds = [sum(w), mu, sigma]
-	CC, μ, σ  = cfit(gauss1, c, w, p0_bounds, lb, ub)
+    lb = [         0.0, mu - 100.0 * sigma, sigma / 100.0]
+    ub = [100 * sum(w), mu + 100.0 * sigma, 100.0 * sigma]
+    p0 = [      sum(w), mu                ,         sigma]
+	(CC, μ, σ), _ = func1dfit(gauss1, c, w, p0, lb, ub)
 	gx = gausg(μ, σ, CC)
 	return FGauss([μ], [σ], [CC], h, c, gx.(c), [gx])
 
 end
 
 
+"""
+	fit_gauss(x::Vector{Float64}, xmin::Float64, xmax::Float64;
+              bins::Integer=50, norm=false)
+
+Fit a normal distribution to data x,y and return FGauss object.
+"""
 fit_gauss(x::Vector{Float64}, xmin::Float64, xmax::Float64;
-	      bins::Integer=50, norm=false) =fit_gauss(hist1d(x, bins, xmin, xmax, norm))
+	      bins::Integer=50, norm=false) = fit_gauss(hist1d(x, bins, xmin, xmax, norm))
 
 
 """
-	fit_gauss_fm(y::Vector{Float64}, xmin::Float64, xmax::Float64, bins=50, fm=0.0)
+	fit_gauss_fm(x::Vector{Float64}, xmin::Float64, xmax::Float64, bins=50, fm=0.0)
 
-Fit a gaussian with a fixed mean fm
+Fit a gaussian with a fixed mean fm and return an FGauss object.
 """
-function fit_gauss_fm(y::Vector{Float64}, xmin::Float64, xmax::Float64;
+function fit_gauss_fm(x::Vector{Float64}, xmin::Float64, xmax::Float64;
 	                  bins=50, norm=false, fm=0.0)
 
 	# fit the unbinned distribution
-	x  =  in_range(y, xmin, xmax)
-	σ = std(x)
+	xx =  in_range(x, xmin, xmax)
+	σ  = std(xx)
 	@debug "gfit_gauss_fm: σ = $σ"
 
 	# bin distribution
-    h = hist1d(x, bins, xmin, xmax, norm)
+    h = hist1d(xx, bins, xmin, xmax, norm)
     c = centers(h)
-    w = h.weights *1.0
+    w = eltype(c).(h.weights)
     @debug "histo w and c"  w c
 
 	# fit parameters lb, ub, po are lower, upper bounds and pars
-    lb = [0.0, σ/10.0]
-    ub = [1.0e+6*sum(w),  σ * 10.0]
-    p0_bounds = [0.0, σ]
+    lb = [            0.0, σ / 10.0]
+    ub = [1.0e+6 * sum(w), σ * 10.0]
+    p0 = [         sum(w), σ       ]
 
 	g1 = gaussfm(fm)
-	CC, sigma  = cfit(g1, c, w, p0_bounds, lb, ub)
+	(CC, sigma), _ = func1dfit(g1, c, w, p0, lb, ub)
 
 	@debug "CC,  sigma"  CC  sigma
 	gx = gausg(fm, sigma, CC)
@@ -217,59 +270,71 @@ function fit_gauss_fm(y::Vector{Float64}, xmin::Float64, xmax::Float64;
 end
 
 
+"""
+    plot_fit_gauss(x::Vector{Float64}, xs::String, ys::String,
+                   bins::Integer, xmin::Float64, xmax::Float64;
+                   xgmin::Float64, xgmax::Float64, gbins::Integer=50)
+Fit a Gaussian to the histogram of data x between xmin and xmax with bins
+and plot the results.
+"""
 function plot_fit_gauss(x::Vector{Float64}, xs::String, ys::String,
-    bins::Integer, xmin::Float64, xmax::Float64;
-    xgmin::Float64, xgmax::Float64, gbins::Integer=50)
+                        bins::Integer, xmin::Float64, xmax::Float64;
+                        xgmin::Float64, xgmax::Float64, gbins::Integer=50)
 
-    h,p = hist1d(x, xs, bins, xmin, xmax, norm=true)
-    fg  = fit_gauss(x, xgmin, xgmax, bins=gbins, norm=true)
-    gx  = fg.g[1]
-    X   = centers(h)
-    Y   = h.weights
-    σY  = sqrt.(Y)
-    lbl = @sprintf " μ=%5.1f, σ =%5.1f " fg.mu[1] fg.std[1]
-    lbl =string("gaussian fit:\n", lbl)
-    p = scatter(X, Y, yerror=σY,fmt = :png,
-    shape = :circle, color = :black, label="data", legend=true)
-    p = plot!(p, X, gx.(X), lw=2, label=lbl, legend=true, fmt = :png)
+    h, _ = hist1d(x, xs, bins, xmin, xmax, norm=true)
+    fg   = fit_gauss(x, xgmin, xgmax, bins=gbins, norm=true)
+    gx   = fg.g[1]
+    X    = centers(h)
+    Y    = h.weights
+    σY   = sqrt.(Y)
+    lbl  = @sprintf " μ=%5.1f, σ =%5.1f " fg.mu[1] fg.std[1]
+    lbl  = string("gaussian fit:\n", lbl)
+    p    = scatter(X, Y, yerror=σY,fmt=:png, shape=:circle, color=:black, label="data", legend=true)
+    p    = plot!(p, X, gx.(X), lw=2, label=lbl, legend=true, fmt = :png)
     xlabel!(xs)
     xlabel!(ys)
     return fg, p
 end
 
-"""
-	fitg1(x, xs, xmin, xmax, xgmin, xgmax; bins=100)
 
-returns the fit and the plot
 """
-function fitg1(x, xs, bins, xmin, xmax;
-	           xgmin, xgmax, fbins=100, norm=true, fm=0.0, flex_mean=false)
+    fitg1(x::Vector{<:Real}, xs::String, nbins::Int64, xmin::Real, xmax::Real;
+	      xgmin::Real, xgmax::Real, fbins::Int64=100, norm::Bool=true,
+          fm::Real=0.0, flex_mean=false)
 
-	h, p = hist1d(x, xs, bins, xmin, xmax, norm=norm, legend=true)
+Histograms data x and returns a plot and a Gaussian fit to the histogram.
+Option flex_mean allows the mean to float or be fixed to fm.
+"""
+function fitg1(x::Vector{<:Real}, xs::String, nbins::Int64, xmin::Real, xmax::Real;
+	           xgmin::Real, xgmax::Real, fbins::Int64=100, norm::Bool=true,
+               fm::Real=0.0, flex_mean=false)
+
+	h, p = hist1d(x, xs, nbins, xmin, xmax, norm=norm, legend=true)
     if flex_mean
         fg = fit_gauss(x, xgmin, xgmax, bins=fbins, norm=norm)
     else
         fg = fit_gauss_fm(x, xgmin, xgmax, bins=fbins, norm=norm, fm=fm)
     end
-	gx = fg.g[1]
-	X = centers(h)
+	gx  = fg.g[1]
+	X   = centers(h)
 	lbl = @sprintf "σ =%4.1f " fg.std[1]
-    p = plot!(p, X, gx.(X), lw=2, label=lbl, legend=true, fmt = :png)
+    p   = plot!(p, X, gx.(X), lw=2, label=lbl, legend=true, fmt = :png)
 	xlabel!(xs)
 	return fg, p
 end
+
 
 """
 	gfit_gauss2_cmean(y, xmin, xmax, bins, sigmas, cs, cmean=0.0)
 
 Fit a double gaussian (with sigmas -->[sigma1, sigma2] cs -->[c1, c2] )
-and a cmean to data.
+and a fixed mean, cmean, to data.
 """
 function gfit_gauss2_cmean(y::Vector{Float64}, xmin::Float64, xmax::Float64,
 	                       bins::Integer, sigmas::Vector{Float64}, cs::Vector{Float64},
 						   norm=false, cmean=0.0)
 
-    x =  in_range(y, xmin, xmax)
+    x = in_range(y, xmin, xmax)
     h = hist1d(x, bins, xmin, xmax, norm)
     c = centers(h)
     w = h.weights
@@ -289,11 +354,9 @@ function gfit_gauss2_cmean(y::Vector{Float64}, xmin::Float64, xmax::Float64,
     @debug "C1 sigma1 C2 sigma2" C1 sigma1 C2  sigma2
 
     #
-    gx = gausg2(cmean, sigma1, C1, cmean, sigma2, C2)
-    gx1 = gausg(cmean, sigma1, C1)
-    gx2 = gausg(cmean, sigma2, C2)
-    #return (sigma1 = sigma1, sigma2 = sigma2, C1 = C1, C2=C2,
-    #        h = h, xg = c, yg = gx.(c), gx = gx, gx1=gx1, gx2=gx2)
+    gx  = gausg2(cmean, sigma1, C1, cmean, sigma2, C2)
+    gx1 = gausg( cmean, sigma1, C1)
+    gx2 = gausg( cmean, sigma2, C2)
 
 	return FGauss([cmean, cmean], [sigma1, sigma2], [C1, C2],
 			       h, c, gx.(c), [gx, gx1, gx2])
@@ -302,7 +365,7 @@ function gfit_gauss2_cmean(y::Vector{Float64}, xmin::Float64, xmax::Float64,
 """
 	fit_2gauss_cmean(data, gp, g1p, g2p, cm)
 
-Fit two gaussian with common mean
+Fit two gaussian with common mean JJ Review!!!
 """
 function fit_2gauss_cmean(data, gp, g1p, g2p, cm, norm=false)
     gf1 = fit_gauss_fm(data, g1p.xmin,g1p.xmax, bins=g1p.nbin, norm=norm, fm=cm)
@@ -316,25 +379,19 @@ function fit_2gauss_cmean(data, gp, g1p, g2p, cm, norm=false)
 end
 
 
-# fit_gauss2(x::Vector{Float64},
-#            xmin::Vector{Float64},
-# 		   xmax::Vector{Float64},
-# 		   bins::Vector{Int64}) = gfit_gauss2(x, xmin, xmax, bins)
-
-
 """
     fitg2(x, xs, xmin, xmax, xg1min, xg1max, xg2min, xg2max, xgmin, xgmax; bins=100)
-Fits 2 gaussians with common mean (0 by default) to vector x.
+Fits 2 gaussians with common mean (0 by default) to vector x. JJ Review!!
 """
-function fitg2(x, xs, bins, xmin, xmax;
-	           xg1min, xg1max, xg2min, xg2max, xgmin, xgmax, cm=0.0,
-         	   g1bins=100, g2bins=100, gbins=100, norm=true)
+function fitg2(x::Vector{<:Real}, xs::String, bins::Int64, xmin::Real, xmax::Real;
+	           xg1min::Real, xg1max::Real, xg2min::Real, xg2max::Real, xgmin::Real, xgmax::Real, cm=0.0,
+         	   g1bins::Int64=100, g2bins::Int64=100, gbins::Int64=100, norm::Bool=true)
 
-	hp, p = hist1d(x, xs, bins, xmin, xmax, norm=norm, legend=true)
+	_, p = hist1d(x, xs, bins, xmin, xmax, norm=norm, legend=true)
 
     g1p = (xmin = xg1min, xmax = xg1max, nbin=g1bins)
-    g2p = (xmin= xg2min, xmax=  xg2max, nbin=g2bins)
-    gp  = (xmin= xgmin, xmax=  xgmax, nbin=gbins)
+    g2p = (xmin = xg2min, xmax = xg2max, nbin=g2bins)
+    gp  = (xmin = xgmin , xmax = xgmax , nbin=gbins )
 
     fg  = fit_2gauss_cmean(x, gp, g1p, g2p, cm, norm)
 	gx  = fg.g[1]
@@ -344,9 +401,9 @@ function fitg2(x, xs, bins, xmin, xmax;
 	lbl = @sprintf "σt =%4.1f mm, σ =%4.1f mm" fg.std[1] fg.std[2]
 	st  = @sprintf "σt =%4.1f mm " fg.std[1]
 	sf  = @sprintf "σ  =%4.1f mm" fg.std[2]
-    p = plot!(p,fg.X, fg.Y, label=lbl, lw=2, fmt = :png)
-    p = plot!(p,fg.X, gx1.(fg.X), label=st, lw=1, fmt = :png)
-    p = plot!(p,fg.X, gx2.(fg.X), label=sf, lw=1, fmt = :png)
+    p = plot!(p, fg.X, fg.Y, label=lbl, lw=2, fmt = :png)
+    p = plot!(p, fg.X, gx1.(fg.X), label=st, lw=1, fmt = :png)
+    p = plot!(p, fg.X, gx2.(fg.X), label=sf, lw=1, fmt = :png)
     #xlabel!(xs)
     return fg, p
 end
@@ -384,9 +441,9 @@ function fit_profile(x1::Vector{<:Real}, x2::Vector{<:Real},
 		return nothing
     end
 
-    p1 = scatter(pdf1.x_mean,pdf1.y_mean, yerror=pdf1.y_std,fmt = :png,
-	          shape = :circle, color = :black, legend=false)
-    p1 = plot!(p1, pdf1.x_mean, fr.g.(pdf1.x_mean), fmt = :png)
+    p1 = scatter(pdf1.x_mean, pdf1.y_mean, yerror=pdf1.y_std, fmt=:png,
+	             shape=:circle, color=:black, legend=false)
+    p1 = plot!(p1, pdf1.x_mean, fr.g.(pdf1.x_mean), fmt=:png)
     xlabel!(tx1)
     ylabel!(ty1)
 

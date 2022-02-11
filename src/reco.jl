@@ -17,7 +17,7 @@ function set_units(df::DataFrame)
     ## mm columns, assumes structure as 2021-10-05, should be generalised
     len_cols = [:r1, :r2, :r1x, :r2x, :x1, :x2, :xb1, :xb2, :xr1, :xr2,
         :xs, :xt1, :xt2, :y1, :y2, :yb1, :yb2, :yr1, :yr2, :ys, :yt1, :yt2, :z1,
-        :z2, :zb1, :zb2, :zr1, :zr2, :zs, :zt1, :zt2, :rt1, :rt2]
+        :z2, :zb1, :zb2, :zr1, :zr2, :zs, :zt1, :zt2]
 
     # ns cols:
     time_cols = [:t1, :t2, :ta1, :ta2, :tr1, :tr2]
@@ -29,17 +29,28 @@ end
 
 
 """
-	radial_correction(xb::Vector{<:Real}, yb::Vector{<:Real},zb::Vector{<:Real},
-	                            r::Vector{<:Real})
+	radial_correction(x::Vector{<:Real}, y::Vector{<:Real},
+                      z::Vector{<:Real}, r::Vector{<:Real})
 Computes the x, y position of the interaction from a radius
 of interaction and the x, y position from the SiPM barycentre
+Kept for backwards compatibility, z argument pointless
 """
-function radial_correction(xb::Vector{<:Real}, yb::Vector{<:Real},
-    zb::Vector{<:Real}, r::Vector{<:Real})
-    ϕ = atan.(yb, xb)
-    x = r .* cos.(ϕ)
-    y = r .* sin.(ϕ)
-    return x, y, zb
+function radial_correction(x::Vector{<:Real}, y::Vector{<:Real},
+                  z::Vector{<:Real}, r::Vector{<:Real})
+    xy = reinterpret(reshape, Float32, calculate_xy.(x, y, r))
+    xy[1,:], xy[2,:], z
+end
+
+
+"""
+    calculate_xy(x1::Real, y1::Real, r::Real)
+Calculate the xy position of a ray at r given x1 and y1 at a different r
+"""
+function calculate_xy(x1::Real, y1::Real, r::Real)
+    ϕ = atan(y1, x1)
+    x = r * cos(ϕ)
+    y = r * sin(ϕ)
+    return x, y
 end
 
 
@@ -76,13 +87,15 @@ end
     time_of_flight(df::DataFrame, source::Vector{Symbol},
                     interaction::Vector{Symbol}, n::Real)
 
-Time of flight between two points
+Time of flight between two arbitrary points in a medium of refraction index n.
 """
 function time_of_flight(df::DataFrame, source_xyz::Vector{Symbol},
         int_xyz::Vector{Symbol}, n::Real=1.0)
+    function displacement(x1, y1, z1, x2, y2, z2)
+        norm.(eachrow(hcat(x1, y1, z1) - hcat(x2, y2, z2)))
+    end
     cc       = SpeedOfLightInVacuum / n
-    pos_df   = combine(df, source_xyz => ByRow(vcat) => :spos, int_xyz => ByRow(vcat) => :ipos)
-    path_len = combine(pos_df, [:ipos, :spos] => ByRow((x, y) -> norm(x .- y)) => :path)
+    path_len = combine(df, vcat(int_xyz, source_xyz) => displacement => :path)
     return uconvert.(ps, path_len[!, :path] ./ cc)
 end
 

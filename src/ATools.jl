@@ -9,7 +9,7 @@ include("raytracing.jl")
 include("io.jl")
 include("reco.jl")
 
-export in_range,gline2p, rxy,phixy,fphi,dxyz,wstd,mean_std,fit,
+export in_range,gline2p, rxy,phixy,fphi,dxyz,mean_std,fit,
        fit_pol1, fit_pol2,fit_pol3, fit_gauss,fit_gauss_fm,
        fitg1, fitg2, fit_profile, plot_fit_gauss  #math
 export select_event,select_by_index,select_by_column_value,

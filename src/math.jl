@@ -33,44 +33,34 @@ end
 
 Distance between two points.
 """
-
 function dxyz(x1::Vector{<:Real}, x2::Vector{<:Real})
     return sqrt((x1[1] - x2[1])^2 + (x1[2] - x2[2])^2 + (x1[3] - x2[3])^2)
 end
 
-"""
-	gline2p(x1,y1,x2, y2)
-	Line that goes through two points
-"""
-function gline2p(x1, y1, x2, y2)
-    fxy(x) = y1 + (x - x1) * (y2 - y1)/(x2 -x1)
-end
 
+"""
+	gline2p(x1::Real, y1::Real, x2::Real, y2::Real)
+	Return function of a line that goes through (x1, y1), (x2, y2)
+"""
 function gline2p(x1::Real, y1::Real, x2::Real, y2::Real)
     fxy(x::Real) = y1 + (x - x1) * (y2 - y1)/(x2 -x1)
 end
 
-"""
-function wstd(x::Vector{<:Real}, q::Vector{<:Real})
-
-Compute the std deviation in x weighted by q:
-Sqrt(1/Q Sum_i (x - x_mean) * qi )
-"""
-function wstd(x::Vector{<:Real}, q::Vector{<:Real})
-	xmean = mean(x)
-	qs = sum((x.-xmean).^2 .* q)
-	Q = sum(q)
-	return sqrt(qs/Q)
-end
-
 
 """
-	mean_std(x, xmin, xmax)
-	Returns mean and std for a vector x in the interval between xmin and xmax
+	mean_std(x::Vector{T}, xmin::T=typemin(T), xmax::T=typemax(T);
+	         w::Union{Nothing, Vector{T}}=nothing) where T
+Returns mean and std of a vector x in the interval between xmin and xmax.
+Using weights w if requested.
 """
-function mean_std(x::Vector{<:Real}, xmin::Real, xmax::Real)
-    xx = in_range(x, xmin, xmax)
-    xm = mean(xx)
-    xs = StatsBase.std(xx)
-    return xm, xs
+function mean_std(x::Vector{T}, xmin::T=typemin(T), xmax::T=typemax(T);
+	              w::Union{Nothing, Vector{T}}=nothing) where T
+	mask = broadcast(range_bound(xmin, xmax, ATools.OpenBound), x)
+    xx   = x[mask]
+	if isnothing(w)
+		ww = ones(eltype(xx), length(xx))
+	else
+		ww = w[mask]
+	end
+    return mean_and_std(xx, FrequencyWeights(ww), corrected=true)
 end

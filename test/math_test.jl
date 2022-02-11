@@ -7,13 +7,14 @@
 
     @test ATools.dxyz([1,1,1], [2,2,2]) ≈ sqrt(3.)
 
-
-    qs = ones(length(data))
-    @test isapprox(ATools.wstd(data, qs), std(data), rtol=1e-4)
-
-    m,s = ATools.mean_std(x, 5, 10)
+    m, s = ATools.mean_std(x, 5, 10)
     @test m ≈ mean(y)
     @test s ≈ std(y)
+
+    norm_weights = Int.(round.(1000 * exp.(-(x .- 50).^2 / 18)))
+    m, s = ATools.mean_std(x, 1, 90, w=norm_weights)
+    @test m ≈ 50.0
+    @test isapprox(s, 3.0, atol=0.003)
 
     fxy = ATools.gline2p(0, 10., 1., 2.)
     @test fxy(0) == 10.0

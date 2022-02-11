@@ -168,9 +168,9 @@ end
 Reads all csv files found in dir and returns a single DataFrame.
 """
 function readdf(dir::String)
-    files = glob("*.csv",dir)
-    dfs   = [CSV.read(file, DataFrame) for file in files]
-    evtdf = vcat(dfs...)
+    file_names = glob("*.csv", dir)
+    dfs        = [CSV.read(fn, DataFrame) for fn in file_names]
+    vcat(dfs...)
 end
 
 
@@ -179,8 +179,8 @@ end
     #NAME!!
 writes a DataFrame to csv file.
 """
-function writemdf(dir::String, file::String, df::DataFrame)
-    path = joinpath(dir, files)
+function writemdf(dir::String, file_name::String, df::DataFrame)
+    path = joinpath(dir, file_name)
     CSV.write(path, df)
 end
 
@@ -211,6 +211,7 @@ end
 
 """
     readh5_todf(path::String, folder::String, dset::String)
+Read contents of folder/dset in file path into a DataFrame.
 """
 function readh5_todf(path::String, folder::String, dset::String)
     h5open(path, "r") do fid
@@ -221,17 +222,18 @@ end
 
 """
     readh5_todf(h5in::HDF5.File, folder::String, dset::String)
+Read from an open HDF5 file the data in folder/dset into a DataFrame.
 """
 function readh5_todf(h5in::HDF5.File, folder::String, dset::String)
-    dst = readh5_dset(h5in, folder, dset)
-    return dst |> DataFrame
+    df = readh5_dset(h5in, folder, dset) |> DataFrame
+    return df
 end
 
 
 """
 	read_abc(path::String)
 
-read abracadabra hdf5 and return relevant data sets
+read abracadabra hdf5 and return relevant data sets in a PetaloDF struct.
 """
 function read_abc(path::String)
 	(primaries, sensor_xyz,
@@ -300,7 +302,7 @@ end
 """
     generate_hdf5_datatype
 
-returns a datatype object for saving any of the OutputDataset group type to hdf5
+returns a datatype object for saving any of the OutputDataset group type to hdf5.
 """
 function generate_hdf5_datatype(data_type::Type{<:OutputDataset})
     epdtype = HDF5.h5t_create(HDF5.H5T_COMPOUND, sizeof(data_type))

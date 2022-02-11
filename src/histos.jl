@@ -34,6 +34,7 @@ function hist1d(x::Vector{<:Real}, bins::Vector{<:Real}, norm=false)
     return h
 end
 
+
 function hist1d(x::Vector{T}, nbins::Integer,
                 xmin::T=typemin(T), xmax::T=typemax(T), norm=false) where T
     xx   = in_range(x, xmin, xmax)
@@ -48,8 +49,8 @@ end
 
 edges of the histogram
 """
-function edges(h::Histogram)
-    collect(h.edges[1])
+function edges(h::Histogram, index::Int64=1)
+    collect(h.edges[index])
 end
 
 
@@ -62,7 +63,7 @@ centers(h::Histogram) = centers(edges(h))
 
 
 """
-    centers
+    centers(edges::Vector{<:Real})
 
 Calculate the bin centers from a vector of bin edges
 """
@@ -74,7 +75,7 @@ end
 """
     hist_weights
 
-return histogram a set of data and return the bin weights.
+return histogram weights of a set of data.
 """
 function hist_weights(edges::Vector{<:Real})
   function get_weights(y::SubArray{<:Real})
@@ -84,52 +85,48 @@ function hist_weights(edges::Vector{<:Real})
   return get_weights
 end
 
-
+"""
+    hist1d(x::Vector{T}, xs::String, nbins::Integer,
+           xmin::T=typemin(T), xmax::T=typemin(T);
+           norm::Bool=false, datap::Bool=true,
+           markersize::Int64=3, fwl::Bool=false,
+           label::String="", legend::Bool=false) where T <: Real
+return 1D histogram and plot axes for data x and number of bins nbins.
+"""
 function hist1d(x::Vector{T}, xs::String, nbins::Integer,
                 xmin::T=typemin(T), xmax::T=typemax(T);
-                norm=false, datap = true, markersize=3, fwl=false,
-                label="", legend=false) where T
+                norm::Bool=false, datap::Bool=true,
+                markersize::Int64=3, fwl::Bool=false,
+                label::String="", legend::Bool=false) where T <: Real
 
-    return hist1d(hist1d(x, nbins, xmin, xmax, norm), xs,
-                         datap=datap, markersize=markersize, fwl=fwl,
-                         label=label, legend=legend)
+    h = hist1d(x, nbins, xmin, xmax, norm)
+    return h, hist1d(h, xs, datap=datap, markersize=markersize, fwl=fwl,
+                     label=label, legend=legend)
 end
 
 
-function hist1d(h::Histogram, xs::String; datap=true, markersize=3, fwl=false,
-                label="", legend=false)
+"""
+    hist1d(h::Histogram, xs::String;
+           datap::Bool=true, markersize::Int64=3, fwl::Bool=false,
+           label::String="", legend::Bool=false)
+Plot 1D histogram from Histogram object and options.
+"""
+function hist1d(h::Histogram, xs::String;
+                datap::Bool=true, markersize::Int64=3, fwl::Bool=false,
+                label::String="", legend::Bool=false)
 
     if datap
-        yg = h.weights * 1.0
         xg = centers(h)
-        p = scatter(xg,yg, yerr = sqrt.(yg), markersize=markersize, label=label, legend=legend)
+        yg = eltype(xg).(h.weights)
+        p  = scatter(xg, yg, yerr=sqrt.(yg),
+                     markersize=markersize, label=label, legend=legend)
         if fwl
-            p = plot!(p, xg,yg, yerr = sqrt.(yg), fmt = :png,
+            p = plot!(p, xg, yg, yerr=sqrt.(yg), fmt=:png,
                       linewidth=1, label=label, legend=legend)
         end
     else
-        p = plot(h, xlabel=xl, fmt = :png, yl="frequency")
+        p = plot(h, xlabel=xs, fmt=:png, yl="frequency")
     end
-    xlabel!(xs)
-    ylabel!("frequency")
-
-    return h, p
-end
-
-function hist1d(h1::Histogram, h2::Histogram, xs::String; markersize=2, norm=false)
-
-    if norm
-        h1 = StatsBase.normalize(h1, mode=:density)
-        h2 = StatsBase.normalize(h2, mode=:density)
-    end
-
-    yg1 = h1.weights * 1.0
-    xg1 = centers(h1)
-    yg2 = h2.weights * 1.0
-    xg2 = centers(h2)
-
-    p1 = scatter(xg1,yg1, yerr = sqrt.(yg1), fmt = :png, markersize=markersize)
-    p  = scatter!(p1,xg2,yg2, yerr = sqrt.(yg2), fmt = :png, markersize=markersize)
     xlabel!(xs)
     ylabel!("frequency")
 
@@ -138,32 +135,61 @@ end
 
 
 """
-    hist2d(x,y, nbins, xl, yl)
+    plot2hist1d(h1::Histogram, h2::Histogram, xs::String;
+                markersize::Int64=2, norm::Bool=false)
+Plot two 1D histograms on the same axes.
+"""
+function plot2hist1d(h1::Histogram, h2::Histogram, xs::String;
+                     markersize::Int64=2, norm::Bool=false)
+
+    if norm
+        h1 = StatsBase.normalize(h1, mode=:density)
+        h2 = StatsBase.normalize(h2, mode=:density)
+    end
+
+    xg1 = centers(h1)
+    yg1 = eltype(xg1).(h1.weights)
+    xg2 = centers(h2)
+    yg2 = eltype(xg2).(h2.weights)
+
+    p1 = scatter(     xg1, yg1, yerr=sqrt.(yg1), fmt=:png, markersize=markersize)
+    p1 = scatter!(p1, xg2, yg2, yerr=sqrt.(yg2), fmt=:png, markersize=markersize)
+    xlabel!(xs)
+    ylabel!("frequency")
+
+    return p1
+end
+
+
+"""
+    hist2d(x::Vector{T}, y::Vector{T}, nbins::Integer,
+           xl::String, yl::String,
+           xmin::T=typemin(T), xmax::T=typemax(T),
+           ymin::T=typemin(T), ymax::T=typemax(T)) where T <: Real
 
 return a 2d histogram and its corresponding graphics (plots)
+given data x, y, labels xl and yl and limits for each axis.
 """
 function hist2d(x::Vector{T},y::Vector{T}, nbins::Integer,
                 xl::String, yl::String,
                 xmin::T=typemin(T), xmax::T=typemax(T),
-                ymin::T=typemin(T), ymax::T=typemax(T); title="") where T
-    function xy(i)
-        return diff(h.edges[i])/2 .+ h.edges[i][1:end-1]
+                ymin::T=typemin(T), ymax::T=typemax(T); title="") where T <: Real
+    function select_data(xval::T, yval::T)
+        range_bound(xmin, xmax, OpenBound)(xval) .&
+        range_bound(ymin, ymax, OpenBound)(yval)
     end
-
-    df = DataFrame(x=y,y=x)
-    df1 = select_by_column_value_interval(df, "y", xmin, xmax)
-    df2 = select_by_column_value_interval(df1, "x", ymin, ymax)
-    data = (df2.x, df2.y)
-    h = fit(Histogram, data, nbins=nbins)
-    ye = xy(1)
-    xe = xy(2)
-    hm = heatmap(xe, ye, h.weights)
+    mask = select_data.(x, y)
+    data = (y[mask], x[mask])
+    h    = fit(Histogram, data, nbins=nbins)
+    ye   = centers(edges(h, 1))
+    xe   = centers(edges(h, 2))
+    hm   = heatmap(xe, ye, h.weights)
     xlabel!(xl)
     ylabel!(yl)
     if title != ""
         title!(title)
     end
-    return h,hm
+    return h, hm
 end
 
 
@@ -174,13 +200,12 @@ returns the weighted mean and std of an array given a minimum
 bin weight for consideration.
 """
 function fmean_std(x::Vector{<:Real}, min_prop::Float64=0.1)
-  mask_func = x -> x .> min_prop * maximum(x)
-  function filt_mean(w::SubArray{<:Real})
-      return [mean_and_std(x[mask_func(w)],
-                           FrequencyWeights(w[mask_func(w)]),
-                           corrected=true)]
-  end
-  return filt_mean
+    mask_func = weights -> weights .> min_prop * maximum(weights)
+    function filt_mean(w::SubArray{<:Real})
+        mask = mask_func(w)
+        return [mean_and_std(x[mask], FrequencyWeights(w[mask]), corrected=true)]
+    end
+    return filt_mean
 end
 
 
