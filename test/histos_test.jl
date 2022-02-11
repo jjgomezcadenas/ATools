@@ -36,7 +36,7 @@
     @test sum(h2.weights) == length(xs)
     @test length(h2.edges[1]) == size(h2.weights)[1] + 1
     max_q = argmax(sum(h2.weights, dims=2))[1]
-    @test isapprox(h2.edges[1][max_q], mean(qs), atol=2*step(h2.edges[1]))
+    @test isapprox(centers(h2)[max_q], mean(qs), atol=2*step(h2.edges[1]))
 
     profile_nbins = 25
     p1df, _ = ATools.p1df(xs, qs, profile_nbins)
