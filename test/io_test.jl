@@ -26,9 +26,9 @@
     norm, rmin, rmax, evtdf = read_evtpar([outfile])
 
     @test norm == 5000
-    @test isapprox(rmin, 353.0)
-    @test isapprox(rmax, 372.8)
-    @test nrow(evtdf) == 663
+    @test isapprox(rmin, 351.5)
+    @test isapprox(rmax, 372.9)
+    @test nrow(evtdf) == 538
     exp_fields = fieldnames(ATools.EventParameters)
     @test ncol(evtdf) == length(exp_fields)
     @test all(in(exp_fields).(propertynames(evtdf)))
