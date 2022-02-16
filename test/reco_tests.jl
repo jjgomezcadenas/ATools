@@ -48,8 +48,8 @@ using PhysicalConstants.CODATA2018
     flight_time_disp = ATools.time_of_flight(units_evtdf, [:xs, :ys, :zs], [:x1, :y1, :z1])
     @test      eltype(flight_time_disp)  <: Unitful.Time
     @test unit(eltype(flight_time_disp)) == Unitful.ps
-    expected_first6 = [ 988.406 * Unitful.ps, 1319.149 * Unitful.ps,
-                       1446.216 * Unitful.ps, 1215.612 * Unitful.ps,
-                       1555.983 * Unitful.ps, 1029.912 * Unitful.ps]
+    expected_first6 = [ 988.117 * Unitful.ps, 1318.657 * Unitful.ps,
+                        900.190 * Unitful.ps, 1029.788 * Unitful.ps,
+                       1097.411 * Unitful.ps, 1210.753 * Unitful.ps]
     @test all(isapprox.(expected_first6, first(flight_time_disp, 6), atol=0.0005 * Unitful.ps))
 end

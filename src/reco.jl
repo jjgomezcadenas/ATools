@@ -21,6 +21,10 @@ function set_units(df::DataFrame)
 
     # ns cols:
     time_cols = [:t1, :t2, :ta1, :ta2, :tr1, :tr2]
+    if :ti1 in propertynames(df)
+        ## For backwards compatibility of data runs.
+        push!(time_cols, :ti1, :ti2)
+    end
 
     units_df = transform(df, len_cols .=> (x -> x * mm), renamecols=false)
     transform!(units_df, time_cols .=> (x -> x * ns), renamecols=false)

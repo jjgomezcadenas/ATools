@@ -84,6 +84,8 @@ Struct representing the parameters for each hemisphere of a selected event.
     yt2      ::Float32 = zero(Float32)
 	zt1      ::Float32 = zero(Float32)
     zt2      ::Float32 = zero(Float32)
+	ti1      ::Float32 = zero(Float32)
+	ti2      ::Float32 = zero(Float32)
 	t1       ::Float32 = zero(Float32)
     t2       ::Float32 = zero(Float32)
 	x1       ::Float32 = zero(Float32)
