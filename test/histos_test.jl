@@ -38,6 +38,15 @@
     max_q = argmax(sum(h2.weights, dims=2))[1]
     @test isapprox(centers(h2)[max_q], mean(qs), atol=3*step(h2.edges[1]))
 
+    nAxis = 4
+    dataN = [1 2 3 4; 1.2 3.2 1.1 7.5]
+    nbins = ntuple(x -> 3, nAxis)
+    blims = [(0.0, 8.0) for _ in 1:nAxis]
+    @test_throws AssertionError histNd(dataN, (5, 6), blims)
+    h4 = histNd(dataN, nbins, blims)
+    @test length(h4.edges) == nAxis
+    @test sum(h4.weights)  == 2
+
     profile_nbins = 25
     p1df, _ = ATools.p1df(xs, qs, profile_nbins)
     @test (mean(p1df.y_mean) > 95.0 && mean(p1df.y_mean) < 105.0)
