@@ -307,11 +307,11 @@ end
 returns a datatype object for saving any of the OutputDataset group type to hdf5.
 """
 function generate_hdf5_datatype(data_type::Type{<:OutputDataset})
-    epdtype = HDF5.h5t_create(HDF5.H5T_COMPOUND, sizeof(data_type))
+    epdtype = HDF5.API.h5t_create(HDF5.API.H5T_COMPOUND, sizeof(data_type))
     epnames = fieldnames(data_type)
     eptypes = fieldtypes(data_type)
     for (i, (nm, typ)) in enumerate(zip(epnames, eptypes))
-        HDF5.h5t_insert(epdtype, nm, fieldoffset(data_type, i), datatype(typ))
+        HDF5.API.h5t_insert(epdtype, nm, fieldoffset(data_type, i), datatype(typ))
     end
     return HDF5.Datatype(epdtype)
 end
