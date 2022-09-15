@@ -194,6 +194,31 @@ end
 
 
 """
+    histNd(xyz       ::Matrix{T},
+           nbins     ::Tuple{S, Vararg{S}},
+           bin_limits::Vector{Tuple{T, T}}) where {T <: Real, S <: Integer}
+Histogram in N dimensions according to nbins and bin_limits.
+N is the number of columns of xyz which should be the same as the lengths
+of the other two arguments.
+"""
+function histNd(xyz       ::Matrix{T}              ,
+                nbins     ::Tuple{S, Vararg{S}},
+                bin_limits::Vector{Tuple{T, T}}) where {T <: Real, S <: Integer}
+    @assert length(nbins)      == size(xyz)[2] "Dimension mismatch data cols to nbins"
+    @assert length(bin_limits) == size(xyz)[2] "Dimension mismatch data cols to bin_limits"
+    function bound(limits::Tuple{T, T}, pos::T)
+        range_bound(limits[1], limits[2], LeftClosed)(pos)
+    end
+    function select_data(point::SubArray{<:Real})
+        reduce(&, bound.(bin_limits, point))
+    end
+    hist_mask = select_data.(eachrow(xyz))
+    bin_edges = Tuple(LinRange(lims..., nbin + 1) for (lims, nbin) in zip(bin_limits, nbins))
+    fit(Histogram, Tuple(eachcol(xyz[hist_mask, :])), bin_edges)
+end
+
+
+"""
     fmean_std
 
 returns the weighted mean and std of an array given a minimum
