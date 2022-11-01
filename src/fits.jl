@@ -68,15 +68,15 @@ and return coefficients and errors.
 """
 function func1dfit(ffit::Function, x::Vector{<:Real},
                    y::Vector{<:Real}, p0::Vector{<:Real},
-                   lb::Vector{Float64}, ub::Vector{Float64})
+                   lb::Vector{Float64}, ub::Vector{Float64}; ci::Float64=1.0-0.66)
     fq = curve_fit(ffit, x, y, p0, lower=lb, upper=ub)
     cfq = coef(fq)
-    @info "coef(fq)" cfq
+    #@info "coef(fq)" cfq
     sfq = stderror(fq)
-    @info "std(fq)" sfq
-    @info "margin_of_error (90%)" margin_error(fq, 0.1)
-    @info " confidence_interval (90%)" confidence_interval(fq, 0.1)
-    return cfq, sfq
+    #@info "std(fq)" sfq
+    #@info "margin_of_error (90%)" margin_error(fq, ci) # default 1 sigma (1-0.66)
+    #@info " confidence_interval (90%)" confidence_interval(fq,ci)
+    return cfq, sfq, confidence_interval(fq,ci)
 end
 
 
@@ -90,7 +90,7 @@ and returns fit result.
 """
 function func1dfit(ffit::Function, x::Vector{<:Real}, y::Vector{<:Real},
 	               yerr::Vector{<:Real}, p0::Vector{<:Real},
-                   lb::Vector{<:Real}, ub::Vector{<:Real})
+                   lb::Vector{<:Real}, ub::Vector{<:Real}; ci::Float64=1.0-0.66)
 	fq = curve_fit(ffit, x, y, yerr.^-2, p0, lower=lb, upper=ub)
     return fq
 end
@@ -138,11 +138,16 @@ function fit_pol3(x::Vector{<:Real}, y::Vector{<:Real}, ci=0.1)
          gpol3(coef(fq)))
 end
 
-
 struct FGauss
 	mu ::Vector{<:Real}
 	std::Vector{<:Real}
 	C  ::Vector{<:Real}
+    δmu ::Vector{<:Real}
+	δstd::Vector{<:Real}
+	δC  ::Vector{<:Real}
+    cimu ::Vector{Tuple{Float64, Float64}}
+	cistd::Vector{Tuple{Float64, Float64}}
+	ciC  ::Vector{Tuple{Float64, Float64}}
 	h  ::Histogram
 	X  ::Vector{<:Real}
 	Y  ::Vector{<:Real}
@@ -219,9 +224,9 @@ function fit_gauss(h::Histogram)
     lb = [         0.0, mu - 100.0 * sigma, sigma / 100.0]
     ub = [100 * sum(w), mu + 100.0 * sigma, 100.0 * sigma]
     p0 = [      sum(w), mu                ,         sigma]
-	(CC, μ, σ), _ = func1dfit(gauss1, c, w, p0, lb, ub)
+	(CC, μ, σ), (δCC, δμ, δσ),(ciCC, ciμ, ciσ) = func1dfit(gauss1, c, w, p0, lb, ub)
 	gx = gausg(μ, σ, CC)
-	return FGauss([μ], [σ], [CC], h, c, gx.(c), [gx])
+	return FGauss([μ], [σ], [CC], [δμ], [δσ], [δCC], [ciμ], [ciσ], [ciCC], h, c, gx.(c), [gx])
 
 end
 
@@ -261,12 +266,14 @@ function fit_gauss_fm(x::Vector{Float64}, xmin::Float64, xmax::Float64;
     p0 = [         sum(w), σ       ]
 
 	g1 = gaussfm(fm)
-	(CC, sigma), _ = func1dfit(g1, c, w, p0, lb, ub)
+	(CC, sigma), (δCC, δσ),(ciCC, ciσ) = func1dfit(g1, c, w, p0, lb, ub)
 
+    
 	@debug "CC,  sigma"  CC  sigma
 	gx = gausg(fm, sigma, CC)
 
-	return FGauss([fm], [sigma], [CC], h, c, gx.(c), [gx])
+	return FGauss([fm], [sigma], [CC], [0.0], [δσ], [δCC], 
+                  [(0.0,0.0)], [ciσ], [ciCC], h, c, gx.(c), [gx])
 end
 
 
